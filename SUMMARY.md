@@ -7,5 +7,6 @@
     - [Price Oracle](technical-details/price-oracle.md)
 - [Audit Reports](audit-reports.md)
 - [Brand Assets](brand-assets.md)
+- [GitHub Repository](https://github.com/K3Capital/sBOLD)
 - [llms.txt](https://k3-capital.github.io/sBOLT-docs/llms.txt)
 - [llms-full.txt](https://k3-capital.github.io/sBOLT-docs/llms-full.txt)

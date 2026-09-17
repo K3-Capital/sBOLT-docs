@@ -67,7 +67,11 @@ Transformations applied while importing the content (content-preserving only):
   **`README.md`** as the readme/first page and **`SUMMARY.md`** as the table of
   contents by default. Schema: <https://api.gitbook.com/gitbook-docs.yaml>.
 - **`SUMMARY.md`** — GitBook's table of contents for a space. It mirrors the site
-  navigation; every page in the site is listed here.
+  navigation; every page in the site is listed here. Its final entries are the
+  external destinations rather than site pages: the project's contracts
+  repository on GitHub (<https://github.com/K3Capital/sBOLD>) and the two
+  generated LLM artifacts below. `generate-llms.mjs` only picks up `.md` targets,
+  so non-page entries here never leak into the generated page list.
 
 ## Local renderer configuration (NOT read by GitBook.com)
 
