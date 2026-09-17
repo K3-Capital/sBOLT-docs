@@ -1,0 +1,96 @@
+name: Notify docs portal
+
+# After a change lands on `main`, ask K3-Capital/docs to rebuild and redeploy the
+# combined documentation site served at docs.k3.capital.
+#
+# This repository only sends the notification. K3-Capital/docs remains the single
+# repository that assembles and deploys the combined site, and it holds the only
+# deployment credentials: this workflow runs with `contents: read`, mints a GitHub App
+# installation token scoped to `K3-Capital/docs` and to the one permission the dispatch
+# endpoint needs (`contents: write`), and never touches Pages itself.
+#
+# Required repository (or organisation) secrets. Create a DEDICATED dispatcher GitHub
+# App named `k3-docs-dispatcher`, installed only on `K3-Capital/docs`, with
+# `Contents: Read and write` and no other repository permission:
+#   DOCS_DISPATCH_APP_ID, DOCS_DISPATCH_APP_PRIVATE_KEY
+#
+# Do not reuse an existing broad K3 App here. What is stored below is the App private
+# key, and that key mints installation tokens for every installation and repository of
+# the App that owns it, so copying a wide App's key into this repository would hand it
+# far more than the repository dispatch it is needed for.
+#
+# K3-Capital/docs authenticates the dispatch by sender identity: a dispatch created with
+# an installation token carries the App's bot user as the event sender, and the portal
+# accepts only `k3-docs-dispatcher[bot]`. Renaming the App, or pointing these secrets at
+# any other App, stops the loop visibly instead of building the site for an unknown
+# caller.
+#
+# `test/notify-workflow.test.mjs` asserts the event name, the dispatch endpoint, the
+# token scoping and the single requested permission against this file, and runs as the
+# first step below, so the two sides of the contract cannot drift apart unnoticed.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Only the newest notification matters, and the portal rebuild always checks out the
+  # current `main` of every source repository, so concurrent pushes collapse into a
+  # single dispatch instead of queueing a rebuild per commit.
+  group: notify-docs-portal
+  cancel-in-progress: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate the dispatch contract
+        run: node --test test/notify-workflow.test.mjs
+
+      - name: Mint a token scoped to K3-Capital/docs
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.DOCS_DISPATCH_APP_ID }}
+          private-key: ${{ secrets.DOCS_DISPATCH_APP_PRIVATE_KEY }}
+          owner: K3-Capital
+          repositories: docs
+          # `permission-*` inputs can only narrow the installation token, never widen it,
+          # and an omitted input leaves the token with every permission the installation
+          # was granted. The dispatch endpoint requires `contents: write` on the target
+          # repository, so exactly that permission is requested and nothing else.
+          permission-contents: write
+
+      - name: Dispatch the docs portal rebuild
+        # The payload is built with `jq` and read from `env:` so no event data is
+        # interpolated into the shell script.
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+          SOURCE_REF: ${{ github.ref }}
+          TARGET_REPOSITORY: K3-Capital/docs
+          EVENT_TYPE: docs-source-updated
+        run: |
+          set -euo pipefail
+          body=$(jq -n \
+            --arg event "$EVENT_TYPE" \
+            --arg repository "$SOURCE_REPOSITORY" \
+            --arg sha "$SOURCE_SHA" \
+            --arg ref "$SOURCE_REF" \
+            '{event_type: $event, client_payload: {repository: $repository, sha: $sha, ref: $ref}}')
+          echo "Dispatching $EVENT_TYPE to $TARGET_REPOSITORY for $SOURCE_REPOSITORY@$SOURCE_SHA"
+          printf '%s\n' "$body" | gh api \
+            --method POST \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/$TARGET_REPOSITORY/dispatches" \
+            --input -

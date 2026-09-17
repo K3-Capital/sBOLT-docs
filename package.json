@@ -2,7 +2,8 @@
   "name": "sbolt-docs",
   "private": true,
   "scripts": {
-    "build": "honkit build . _book && node scripts/set-page-titles.mjs _book && node scripts/generate-llms.mjs _book"
+    "build": "honkit build . _book && node scripts/set-page-titles.mjs _book && node scripts/generate-llms.mjs _book",
+    "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
     "@lacspace/llms-txt": "^1.4.0",
