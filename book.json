@@ -1,0 +1,16 @@
+{
+  "plugins": [
+    "mermaid-hybrid",
+    "katex"
+  ],
+  "pluginsConfig": {
+    "mermaid-hybrid": {
+      "plugin": {
+        "embed": true
+      },
+      "mermaid": {
+        "theme": "neutral"
+      }
+    }
+  }
+}

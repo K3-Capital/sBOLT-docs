@@ -1,0 +1,10 @@
+[book]
+title = "sBOLD Documentation"
+authors = ["K3 Capital"]
+description = "Documentation for sBOLD, K3 Capital's yield-bearing ERC-4626 wrapper for Liquity v2 Stability Pool deposits."
+language = "en"
+multilingual = false
+
+[build]
+build-dir = "book"
+create-missing = true
