@@ -1,0 +1,19 @@
+# GitBook Site configuration (GitBook Git Sync)
+# This is the file GitBook.com's Git Sync setup looks for at the repository root
+# for a "site" style sync. It maps the repository's content directories onto the
+# site's navigation. This site has a single space whose content lives at the
+# repository root; within that directory README.md is the readme/homepage and
+# SUMMARY.md is the table of contents (GitBook's defaults for a space).
+#
+# Schema reference: https://api.gitbook.com/gitbook-docs.yaml
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: sBOLD
+  structure:
+    - type: space
+      key: space-sbold
+      title: sBOLD
+      path: /
+      default: true
+      content:
+        directory: ./

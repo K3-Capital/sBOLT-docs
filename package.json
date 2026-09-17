@@ -1,0 +1,14 @@
+{
+  "name": "sbolt-docs",
+  "private": true,
+  "scripts": {
+    "build": "honkit build . _book && node scripts/set-page-titles.mjs _book && node scripts/generate-llms.mjs _book"
+  },
+  "devDependencies": {
+    "@lacspace/llms-txt": "^1.4.0",
+    "@mermaid-js/mermaid-cli": "11.17.0",
+    "honkit": "6.2.2",
+    "honkit-plugin-katex": "1.1.7",
+    "honkit-plugin-mermaid-hybrid": "1.0.2"
+  }
+}
