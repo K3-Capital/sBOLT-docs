@@ -6,15 +6,28 @@ name: Notify docs portal
 # This repository only sends the notification. K3-Capital/docs remains the single
 # repository that assembles and deploys the combined site, and it holds the only
 # deployment credentials: this workflow runs with `contents: read`, mints a GitHub App
-# installation token scoped to `K3-Capital/docs`, and never touches Pages itself.
+# installation token scoped to `K3-Capital/docs` and to the one permission the dispatch
+# endpoint needs (`contents: write`), and never touches Pages itself.
 #
-# `test/notify-workflow.test.mjs` asserts the event name, the dispatch endpoint and the
-# token scoping against this file, and runs as the first step below, so the two sides of
-# the contract cannot drift apart unnoticed.
-#
-# Required repository (or organisation) secrets, from a GitHub App installed on
-# `K3-Capital/docs` with `Contents: Read and write`:
+# Required repository (or organisation) secrets. Create a DEDICATED dispatcher GitHub
+# App named `k3-docs-dispatcher`, installed only on `K3-Capital/docs`, with
+# `Contents: Read and write` and no other repository permission:
 #   DOCS_DISPATCH_APP_ID, DOCS_DISPATCH_APP_PRIVATE_KEY
+#
+# Do not reuse an existing broad K3 App here. What is stored below is the App private
+# key, and that key mints installation tokens for every installation and repository of
+# the App that owns it, so copying a wide App's key into this repository would hand it
+# far more than the repository dispatch it is needed for.
+#
+# K3-Capital/docs authenticates the dispatch by sender identity: a dispatch created with
+# an installation token carries the App's bot user as the event sender, and the portal
+# accepts only `k3-docs-dispatcher[bot]`. Renaming the App, or pointing these secrets at
+# any other App, stops the loop visibly instead of building the site for an unknown
+# caller.
+#
+# `test/notify-workflow.test.mjs` asserts the event name, the dispatch endpoint, the
+# token scoping and the single requested permission against this file, and runs as the
+# first step below, so the two sides of the contract cannot drift apart unnoticed.
 
 on:
   push:
@@ -51,6 +64,11 @@ jobs:
           private-key: ${{ secrets.DOCS_DISPATCH_APP_PRIVATE_KEY }}
           owner: K3-Capital
           repositories: docs
+          # `permission-*` inputs can only narrow the installation token, never widen it,
+          # and an omitted input leaves the token with every permission the installation
+          # was granted. The dispatch endpoint requires `contents: write` on the target
+          # repository, so exactly that permission is requested and nothing else.
+          permission-contents: write
 
       - name: Dispatch the docs portal rebuild
         # The payload is built with `jq` and read from `env:` so no event data is
