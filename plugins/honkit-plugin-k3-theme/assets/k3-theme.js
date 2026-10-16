@@ -229,6 +229,7 @@ require(["gitbook"], function (gitbook) {
     if (!label && active && active.classList.contains("k3-under-header")) {          // page listed under a section title
       for (var h = active.previousElementSibling; h; h = h.previousElementSibling) if (h.classList.contains("header")) { label = h; break; }
     }
+    if (label && label.textContent.trim().toLowerCase() === h1.textContent.trim().toLowerCase()) label = null;     // e.g. "Technical Details" above "Technical Details"
     if (label) {
       var e = document.createElement("div"); e.className = "k3-eyebrow"; e.textContent = label.textContent.trim();
       section.insertBefore(e, h1);
