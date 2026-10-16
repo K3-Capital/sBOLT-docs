@@ -82,6 +82,7 @@ require(["gitbook"], function (gitbook) {
     var logo = document.createElement("a"); logo.className = "k3-logo"; logo.setAttribute("aria-label", "Home");
     logo.addEventListener("click", function () { var f = document.querySelector(".book-summary ul.summary a"); if (f) f.click(); });
     left.appendChild(menu); left.appendChild(logo);
+    var switcher = buildSwitcher(); if (switcher) left.appendChild(switcher);
 
     var search = document.createElement("div"); search.className = "k3-search";
     var trigger = document.createElement("button"); trigger.type = "button"; trigger.className = "k3-search-trigger";
@@ -259,6 +260,57 @@ require(["gitbook"], function (gitbook) {
     d.appendChild(ul);
     var anchor = section.querySelector("p.k3-lead") || section.querySelector("h1");
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor.nextSibling);
+  }
+
+  /* ---- docs switcher: moves between the documentation sets published on the same site ---- */
+  var DOC_SETS = [
+    { key: "vault-infra", label: "Vault infra", desc: "Architecture, integration guide and reference" },
+    { key: "sBOLT", label: "sBOLD", desc: "Liquity v2 Stability Pool wrapper" }
+  ];
+  function detectDocSet() {
+    var parts = location.pathname.split("/");
+    for (var i = 0; i < parts.length; i++)
+      for (var k = 0; k < DOC_SETS.length; k++)
+        if (parts[i] === DOC_SETS[k].key) return { current: DOC_SETS[k].key, base: parts.slice(0, i).join("/") + "/" };
+    return null;                                   // not served from the combined site: nothing to switch to
+  }
+  var CHEVRON = '<svg class="k3-sw-chev" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+  function buildSwitcher() {
+    var where = detectDocSet(); if (!where) return null;
+    var cur = DOC_SETS.filter(function (d) { return d.key === where.current; })[0];
+    var wrap = document.createElement("div"); wrap.className = "k3-switch";
+    var btn = document.createElement("button"); btn.type = "button"; btn.className = "k3-switch-btn";
+    btn.setAttribute("aria-haspopup", "menu"); btn.setAttribute("aria-expanded", "false"); btn.setAttribute("aria-label", "Switch documentation: currently " + cur.label);
+    btn.innerHTML = '<span class="k3-sw-label"></span>' + CHEVRON; btn.querySelector(".k3-sw-label").textContent = cur.label;
+    var menu = document.createElement("div"); menu.className = "k3-switch-menu"; menu.setAttribute("role", "menu"); menu.hidden = true;
+    DOC_SETS.forEach(function (d) {
+      var a = document.createElement("a"); a.className = "k3-switch-item" + (d.key === where.current ? " current" : ""); a.setAttribute("role", "menuitem");
+      a.href = where.base + d.key + "/"; if (d.key === where.current) a.setAttribute("aria-current", "true");
+      a.innerHTML = '<span class="k3-si-text"><strong></strong><small></small></span><svg class="k3-si-check" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+      a.querySelector("strong").textContent = d.label; a.querySelector("small").textContent = d.desc;
+      menu.appendChild(a);
+    });
+    function items() { return [].slice.call(menu.querySelectorAll(".k3-switch-item")); }
+    function open() { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); wrap.classList.add("open"); }
+    function close(focusBtn) { if (menu.hidden) return; menu.hidden = true; btn.setAttribute("aria-expanded", "false"); wrap.classList.remove("open"); if (focusBtn) btn.focus(); }
+    /* keyboard users land on the current item; with a mouse, focus stays on the button (no focus ring on the first item) */
+    btn.addEventListener("click", function (e) {
+      if (!menu.hidden) { close(); return; }
+      open(); if (e.detail === 0) (menu.querySelector(".current") || items()[0]).focus();
+    });
+    btn.addEventListener("keydown", function (e) { if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); open(); (e.key === "ArrowDown" ? items()[0] : items()[items().length - 1]).focus(); } });
+    menu.addEventListener("keydown", function (e) {
+      var list = items(), i = list.indexOf(document.activeElement);
+      if (e.key === "ArrowDown") { e.preventDefault(); list[(i + 1) % list.length].focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); list[(i - 1 + list.length) % list.length].focus(); }
+      else if (e.key === "Home") { e.preventDefault(); list[0].focus(); }
+      else if (e.key === "End") { e.preventDefault(); list[list.length - 1].focus(); }
+      else if (e.key === "Escape") { e.preventDefault(); close(true); }
+      else if (e.key === "Tab") close(false);
+    });
+    document.addEventListener("mousedown", function (e) { if (!wrap.contains(e.target)) close(false); });
+    wrap.appendChild(btn); wrap.appendChild(menu);
+    return wrap;
   }
 
   /* ---- copy buttons: code blocks, and inline addresses / hashes / URLs ---- */
