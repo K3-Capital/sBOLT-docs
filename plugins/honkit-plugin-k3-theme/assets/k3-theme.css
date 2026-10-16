@@ -143,6 +143,8 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 .book .book-summary ul.summary li:has(> a.gitbook-link) { display: none; }
 /* llms.txt / llms-full.txt stay in SUMMARY.md (build gates require them) and stay published; they are just not shown in the nav */
 .book .book-summary ul.summary li:has(> a[href$="llms.txt"]), .book .book-summary ul.summary li:has(> a[href$="llms-full.txt"]) { display: none; }
+/* The GitHub entry stays in SUMMARY.md (the top-bar GitHub button reads its link from there) but is not repeated in the sidebar */
+.book .book-summary ul.summary li:has(> a[href*="github.com"]) { display: none; }
 
 /* ---------- Content ---------- */
 .book .book-body .page-wrapper .page-inner { max-width: 780px; padding: 40px 28px 96px; }
