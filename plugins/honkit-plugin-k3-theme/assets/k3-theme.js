@@ -189,13 +189,21 @@ require(["gitbook"], function (gitbook) {
     section.appendChild(wrap);
   }
 
-  /* Lock the sidebar when it overflows by only a few pixels: a scroll that barely moves is worse than none. */
+  /* Lock the sidebar when it overflows by only a few pixels: a scroll that barely moves is worse than none.
+     HonKit rebuilds the whole sidebar on every page change, and until the new one is laid out its height reads 0, which
+     looks like "no overflow". That case must never lock (it left the menu unscrollable after clicking a link), so the lock
+     applies only to a measured, small, non-zero overflow, and is re-measured as the layout settles. */
+  var LOCK_MAX = 24;
   function fitNav() {
     var nav = document.querySelector(".book-summary"); if (!nav) return;
-    nav.style.overflowY = "auto";
-    nav.style.overflowY = nav.scrollHeight - nav.clientHeight <= 24 ? "hidden" : "auto";
+    nav.style.overflowY = "";                                   // measure the natural state (the stylesheet says auto)
+    var over = nav.scrollHeight - nav.clientHeight;
+    if (nav.clientHeight > 0 && over > 0 && over <= LOCK_MAX) nav.style.overflowY = "hidden";
   }
+  function fitNavSoon() { [0, 120, 400, 1000, 2000].forEach(function (ms) { setTimeout(fitNav, ms); }); }
   window.addEventListener("resize", fitNav);
+  window.addEventListener("load", fitNav);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNav);
 
   /* A "## Title" line in SUMMARY.md renders as a non-clickable section title (li.header). The plain pages that follow it
      (up to the next title or group) are indented under it, like the groups in the other docs set. */
@@ -465,7 +473,7 @@ require(["gitbook"], function (gitbook) {
   }
 
   var firstInit = true;
-  function init() { buildTopbar(); buildDrawerHead(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); buildHeader(); updateCrumbs(); closeDrawerSoon(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
+  function init() { buildTopbar(); buildDrawerHead(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); fitNavSoon(); buildHeader(); updateCrumbs(); closeDrawerSoon(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });
