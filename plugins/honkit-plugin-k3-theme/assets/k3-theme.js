@@ -192,6 +192,17 @@ require(["gitbook"], function (gitbook) {
   }
   window.addEventListener("resize", fitNav);
 
+  /* A "## Title" line in SUMMARY.md renders as a non-clickable section title (li.header). The plain pages that follow it
+     (up to the next title or group) are indented under it, like the groups in the other docs set. */
+  function markSectionTitles() {
+    [].forEach.call(document.querySelectorAll(".book-summary ul.summary li.header"), function (h) {
+      for (var n = h.nextElementSibling; n; n = n.nextElementSibling) {
+        if (n.classList.contains("header") || n.classList.contains("divider") || n.querySelector(":scope > ul.articles")) break;
+        if (n.classList.contains("chapter")) n.classList.add("k3-under-header");
+      }
+    });
+  }
+
   /* Page header like modern docs: small section label above the title, short intro line below it. */
   function buildHeader() {
     var section = document.querySelector(".markdown-section"); if (!section) return;
@@ -203,6 +214,9 @@ require(["gitbook"], function (gitbook) {
     var active = document.querySelector(".book-summary li.active");
     var group = active && active.parentElement && active.parentElement.closest("li.chapter");
     var label = group && group !== active && group.querySelector(":scope > a, :scope > span");
+    if (!label && active && active.classList.contains("k3-under-header")) {          // page listed under a section title
+      for (var h = active.previousElementSibling; h; h = h.previousElementSibling) if (h.classList.contains("header")) { label = h; break; }
+    }
     if (label) {
       var e = document.createElement("div"); e.className = "k3-eyebrow"; e.textContent = label.textContent.trim();
       section.insertBefore(e, h1);
@@ -355,7 +369,7 @@ require(["gitbook"], function (gitbook) {
   }
 
   var firstInit = true;
-  function init() { buildTopbar(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; fitNav(); buildHeader(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
+  function init() { buildTopbar(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); buildHeader(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });

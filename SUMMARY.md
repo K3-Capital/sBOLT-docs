@@ -1,5 +1,7 @@
 # Summary
 
+## Introduction
+
 - [Liquity v2 Design](README.md)
 - [Introducing sBOLD](introducing-sbold.md)
 - [Technical Details](technical-details/README.md)

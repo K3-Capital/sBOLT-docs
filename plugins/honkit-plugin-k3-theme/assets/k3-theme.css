@@ -133,6 +133,14 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 .book .book-summary ul.summary > li.chapter:has(> ul.articles) > a:hover { background: transparent; }
 .book .book-summary ul.summary > li.chapter:has(> ul.articles).active > a { background: transparent; }
 .book .book-summary ul.summary ul.articles { padding: 0; margin: 0; }
+ /* section titles ("## Title" in SUMMARY.md) look like the group labels, and the pages under them are indented like sub-items */
+.book .book-summary ul.summary li.header {
+  margin: 18px 0 0; padding: 9px 14px 6px; background: transparent; border: 0; text-transform: none; letter-spacing: -0.005em;
+  font: 650 15px var(--k3-font); color: var(--k3-text-strong);
+}
+.book .book-summary ul.summary li.k3-under-header > a { margin-left: 16px; padding: 5px 12px; font-size: 14px; }
+.book .book-summary ul.summary li.header + li.chapter:not(.k3-under-header) { margin-top: 0; }
+
 .book .book-summary ul.summary ul.articles li a { margin-left: 16px; padding: 5px 12px; font-size: 14px; }   /* indent the whole pill, keep inner padding symmetric */
 /* never truncate titles: wrap instead of "..." */
 .book .book-summary ul.summary li a, .book .book-summary ul.summary li span {
