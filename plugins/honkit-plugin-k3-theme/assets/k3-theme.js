@@ -6,7 +6,6 @@ require(["gitbook"], function (gitbook) {
   apply(stored() || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 
   function scroller() { return document.querySelector(".book-body .body-inner"); }
-  var spy;
 
   var ICON_SEARCH = '<svg class="k3-ico" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
   var modal, mInput, mList, mItems = [], mActive = -1, lastQuery = "";
@@ -109,9 +108,24 @@ require(["gitbook"], function (gitbook) {
     document.querySelector(".book").appendChild(bar);
   }
 
+  /* Scroll-spy state. HonKit replaces the scroll container (.book-body .body-inner) on every page change, so nothing
+     here may hold on to a specific element: the container is looked up on each update and scroll events are caught
+     at document level (capture phase). */
+  var tocHeads = [], tocItems = [];
+  function updateSpy() {
+    var sc = scroller(); if (!sc || !tocHeads.length) return;
+    var top = sc.getBoundingClientRect().top + 40, cur = 0;
+    tocHeads.forEach(function (h, i) { if (h.getBoundingClientRect().top <= top) cur = i; });
+    tocItems.forEach(function (li, i) { li.classList.toggle("active", i === cur); });
+  }
+  document.addEventListener("scroll", function (e) {
+    var t = e.target; if (t && t.classList && t.classList.contains("body-inner")) updateSpy();
+  }, true);
+  window.addEventListener("resize", updateSpy);
+
   function buildToc() {
     var old = document.querySelector(".k3-toc"); if (old) old.remove();
-    var sc = scroller(); if (sc && spy) { sc.removeEventListener("scroll", spy); spy = null; }
+    tocHeads = []; tocItems = [];
     var section = document.querySelector(".markdown-section"); if (!section) return;
     var heads = [].slice.call(section.querySelectorAll("h2[id], h3[id]"));
     if (heads.length < 2) return;
@@ -126,13 +140,12 @@ require(["gitbook"], function (gitbook) {
       a.addEventListener("click", function (e) { e.preventDefault(); heads[i].scrollIntoView({ behavior: "smooth", block: "start" }); });
     });
     document.querySelector(".book-body").appendChild(toc);
-    var items = [].slice.call(toc.querySelectorAll("li"));
-    spy = function () {
-      var top = sc.getBoundingClientRect().top + 40, cur = 0;
-      heads.forEach(function (h, i) { if (h.getBoundingClientRect().top <= top) cur = i; });
-      items.forEach(function (li, i) { li.classList.toggle("active", i === cur); });
-    };
-    sc.addEventListener("scroll", spy, { passive: true }); spy();
+    tocHeads = heads; tocItems = [].slice.call(toc.querySelectorAll("li"));
+    /* the new page may still be laid out / scrolled to its start position a moment after the page-change event */
+    updateSpy();
+    requestAnimationFrame(updateSpy);
+    setTimeout(updateSpy, 120);
+    setTimeout(updateSpy, 400);
   }
 
   function buildPager() {
