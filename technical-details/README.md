@@ -6,7 +6,7 @@ sBOLD provides a capital-efficient way for liquidity provision across multiple s
 
 ## Overview
 
-<figure><img src="../assets/technical-details/architecture-overview.png" alt=""><figcaption></figcaption></figure>
+![Architecture overview: the user calls deposit, withdraw and swap on the sBOLD ERC-4626 vault, which uses the Registry and Price Oracle Adapters for quotes, provides BOLD to the Stability Pools and calls the Swap Adapter](../assets/technical-details/architecture-overview.svg)
 
 ### **ERC-20**
 

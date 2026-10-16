@@ -4,7 +4,7 @@
 
 sBOLD possesses a rebalancing feature, by which the weights and the Stability Pools can be changed and the funds are provided with the new ratios to the respective Stability Pools set. The operation is only permitted to be executed by the vault administrator and only if the collateral left in the contract is less than maximum collateral in BOLD previously set.
 
-<figure><img src="assets/introducing-sbold/flow-of-funds.jpg" alt=""><figcaption><p>sBOLD: Flow of Funds</p></figcaption></figure>
+![sBOLD: Flow of Funds. A user deposits BOLD into the sBOLD Adapter (1), the adapter routes it to the wstETH, wETH and rETH Stability Pools, 60%, 30% and 10% (2), and sBOLD is minted to the user (3)](assets/introducing-sbold/flow-of-funds.svg)
 
 ## The yield-bearing component of sBOLD stems from two streams:
 
