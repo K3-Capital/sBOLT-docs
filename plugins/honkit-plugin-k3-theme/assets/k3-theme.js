@@ -238,17 +238,35 @@ require(["gitbook"], function (gitbook) {
   /* ---- responsive helpers ---- */
   var narrowMQ = window.matchMedia("(max-width: 999px)");
   function bookEl() { return document.querySelector(".book"); }
-  function sidebarOpen() { return bookEl().classList.contains("with-summary"); }
-  function setSidebar(open) { bookEl().classList.toggle("with-summary", open); }
+  /* pinned sidebar (>= 1000px) uses HonKit's "with-summary"; the slide-in drawer (< 1000px) has its own "k3-drawer-open", so it starts closed with no flash */
+  function sidebarOpen() { return bookEl().classList.contains(narrowMQ.matches ? "k3-drawer-open" : "with-summary"); }
+  /* animate = true for the reader's own open/close (the drawer slides); HonKit marks the page "without-animation" at load on wider
+     screens and never clears it, which made the drawer jump, so that flag is managed here. */
+  var drawerOpenedAt = 0;
+  function setSidebar(open, animate) {
+    if (open) drawerOpenedAt = performance.now();
+    var book = bookEl(); book.classList.toggle("without-animation", animate === false); book.classList.toggle("with-summary", open); book.classList.toggle("k3-drawer-open", open);
+  }
   /* Pinned open on desktop, closed drawer on narrow screens. HonKit remembers the last state in localStorage,
      which could leave a desktop reader without a sidebar (or a phone with the drawer covering the page). */
   function syncSidebar(first) {
     var book = bookEl(); if (!book) return;
     var want = !narrowMQ.matches;
     if (first) book.classList.add("k3-init");
-    if (sidebarOpen() !== want) setSidebar(want);
+    if (sidebarOpen() !== want) setSidebar(want, false);
     if (first) requestAnimationFrame(function () { requestAnimationFrame(function () { book.classList.remove("k3-init"); }); });
   }
+  /* HonKit rewrites the page element's classes during navigation and later restores the old ones (including "k3-drawer-open"),
+     so the drawer is closed when a link inside it is tapped (it slides shut while the next page loads), and re-checked after the change. */
+  document.addEventListener("click", function (e) {
+    if (!narrowMQ.matches || !sidebarOpen()) return;
+    var a = e.target.closest && e.target.closest(".book-summary a"); if (a) setSidebar(false);
+  }, true);
+  function closeDrawerSoon() {
+    var changedAt = performance.now();           // only a drawer that was already open before this page change is closed again; one opened since stays open
+    [0, 150, 500].forEach(function (ms) { setTimeout(function () { if (narrowMQ.matches && bookEl() && sidebarOpen() && drawerOpenedAt < changedAt) setSidebar(false, false); }, ms); });
+  }
+
   function buildBackdrop() {
     if (document.querySelector(".k3-backdrop")) return;
     var d = document.createElement("div"); d.className = "k3-backdrop";
@@ -445,7 +463,7 @@ require(["gitbook"], function (gitbook) {
   }
 
   var firstInit = true;
-  function init() { buildTopbar(); buildDrawerHead(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); buildHeader(); updateCrumbs(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
+  function init() { buildTopbar(); buildDrawerHead(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); buildHeader(); updateCrumbs(); closeDrawerSoon(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });
