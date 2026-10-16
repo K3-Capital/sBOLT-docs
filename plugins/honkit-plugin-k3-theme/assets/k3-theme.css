@@ -220,7 +220,8 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
     color: var(--k3-text-muted); text-decoration: none; line-height: 1.4; }
   .k3-toc li.l3 a { padding-left: 28px; }
   .k3-toc li a:hover { color: var(--k3-text-strong); }
-  .k3-toc li.active a { color: var(--k3-accent); border-left-color: var(--k3-accent); font-weight: 550; }
+  /* colour + bar only: a heavier weight is wider and re-wraps long entries, making the panel jump while scrolling */
+  .k3-toc li.active a { color: var(--k3-accent); border-left-color: var(--k3-accent); }
 }
 
 /* ---------- Footer prev / next cards ---------- */
