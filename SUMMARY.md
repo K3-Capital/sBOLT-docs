@@ -7,6 +7,9 @@
 - [Technical Details](technical-details/README.md)
     - [Interactions](technical-details/interactions.md)
     - [Price Oracle](technical-details/price-oracle.md)
+
+## Resources
+
 - [Audit Reports](audit-reports.md)
 - [Brand Assets](brand-assets.md)
 - [GitHub Repository](https://github.com/K3Capital/sBOLD)
