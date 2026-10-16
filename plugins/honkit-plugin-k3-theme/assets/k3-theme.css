@@ -234,6 +234,114 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 .k3-pager .next { grid-column: 2; text-align: right; }
 .k3-pager .prev:only-child { grid-column: 1; }
 
-@media (max-width: 1000px) { .k3-menu { display: inline-flex; } .k3-gh span { display: none; } }
-@media (max-width: 800px) { .k3-topbar { grid-template-columns: auto 1fr auto; padding: 0 16px; } .k3-search-trigger kbd { display: none; } .book .book-body .page-wrapper .page-inner { padding: 24px 18px 72px; } .markdown-section h1 { font-size: 30px; } }
 ::selection { background: var(--k3-accent); color: #fff; }
+
+/* =====================================================================================
+   Responsive layout
+   >= 1240  sidebar + content + "On this page" panel
+   1000-1239 sidebar + content (inline "On this page" menu)
+   < 1000   sidebar becomes a slide-in drawer (closed by default) with a backdrop
+   < 760    compact top bar (search collapses to an icon)
+   < 560    single-column pager, GitHub button hidden
+   ===================================================================================== */
+
+/* One scroll container at every width. HonKit switches to a different one below 1240px,
+   which breaks anything that tracks scrolling; keep .body-inner as the scroller. */
+@media (max-width: 1240px) {
+  .book .book-body { overflow: hidden; padding-bottom: 0; }
+  .book .book-body .body-inner { position: absolute; top: 0; right: 0; bottom: 0; left: 0; min-height: 0; }
+}
+
+/* Tables scroll sideways inside their own container instead of being clipped */
+.k3-table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 24px 0; max-width: 100%;
+  background:
+    linear-gradient(to right, var(--k3-bg) 30%, rgba(255,255,255,0)) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--k3-bg) 30%, rgba(255,255,255,0)) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.16), rgba(0,0,0,0)) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.16), rgba(0,0,0,0)) right center / 12px 100% no-repeat scroll;
+}
+.k3-table-wrap > table { margin: 0; }
+.markdown-section pre, .markdown-section .katex-display { max-width: 100%; overflow-x: auto; }
+.markdown-section :not(pre) > code { overflow-wrap: break-word; }   /* unlike `anywhere`, keeps a word whole unless it cannot fit, so table columns are not squeezed */
+.markdown-section p.k3-lead code { font-size: .8em; }
+.markdown-section h1 code, .markdown-section h2 code, .markdown-section h3 code, .markdown-section h4 code {
+  background: none; border: 0; padding: 0; font-size: .92em; color: inherit;
+}
+
+/* Inline "On this page" (the right-hand panel needs >= 1240px) */
+.k3-toc-inline { display: none; margin: 0 0 28px; border: 1px solid var(--k3-line); border-radius: 12px; background: var(--k3-bg); }
+.k3-toc-inline summary { cursor: pointer; list-style: none; padding: 12px 16px; font: 600 14px var(--k3-font); color: var(--k3-text-strong); display: flex; align-items: center; justify-content: space-between; }
+.k3-toc-inline summary::-webkit-details-marker { display: none; }
+.k3-toc-inline summary::after { content: "▾"; color: var(--k3-text-muted); transition: transform .15s; }
+.k3-toc-inline[open] summary::after { transform: rotate(180deg); }
+.k3-toc-inline ul { list-style: none; margin: 0; padding: 0 8px 10px; }
+.k3-toc-inline li a { display: block; padding: 8px 10px; border: 0 !important; border-radius: 8px; color: var(--k3-text-muted); font-size: 14.5px; text-decoration: none; }
+.k3-toc-inline li.l3 a { padding-left: 24px; }
+.k3-toc-inline li a:hover { background: var(--k3-bg-soft); color: var(--k3-text-strong); }
+@media (max-width: 1239px) { .k3-toc-inline { display: block; } }
+
+/* Sidebar as a drawer below 1000px */
+.k3-backdrop { display: none; }
+@media (max-width: 999px) {
+  .k3-menu { display: inline-flex; }
+  .book .book-summary {
+    position: fixed; top: 64px; bottom: 0; left: 0 !important; width: min(340px, 88vw) !important; z-index: 30;
+    transform: translateX(-104%); transition: transform .22s ease; background: var(--k3-bg);
+  }
+  .book.with-summary .book-summary { transform: none; box-shadow: 0 0 48px rgba(10, 10, 30, .22); }
+  .book.k3-init .book-summary { transition: none !important; }
+  .book .book-body, .book.with-summary .book-body { left: 0 !important; right: 0 !important; transform: none !important; }
+  .book.with-summary { overflow: visible; }
+  .k3-backdrop { display: block; position: fixed; inset: 64px 0 0 0; z-index: 25; background: rgba(10, 10, 20, .42);
+    opacity: 0; pointer-events: none; transition: opacity .22s ease; }
+  .book.with-summary .k3-backdrop { opacity: 1; pointer-events: auto; }
+  .book .book-body .page-wrapper .page-inner { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+}
+
+/* Compact top bar */
+@media (max-width: 999px) { .k3-topbar { grid-template-columns: 1fr minmax(0, 340px) 1fr; padding: 0 max(16px, env(safe-area-inset-left)); } }
+@media (max-width: 760px) {
+  .k3-topbar { display: flex; gap: 4px; padding: 0 max(10px, env(safe-area-inset-left)) 0 max(10px, env(safe-area-inset-right)); }
+  .k3-left { flex: 1; min-width: 0; }
+  .k3-right { flex: 0 0 auto; }
+  .k3-search { flex: 0 0 auto; }
+  .k3-search-trigger { width: 40px; height: 40px; padding: 0; justify-content: center; border-color: transparent; }
+  .k3-search-trigger span, .k3-search-trigger kbd { display: none; }
+  .k3-search-trigger:hover { border-color: transparent; background: var(--k3-bg-soft); }
+  .k3-logo { width: 96px; height: 26px; }
+  .k3-gh span { display: inline; }
+}
+@media (max-width: 559px) { .k3-gh { display: none; } }
+
+/* Content scale on small screens */
+@media (max-width: 760px) {
+  .book .book-body .page-wrapper .page-inner { padding-top: 24px; padding-bottom: 72px; }
+  .markdown-section h1 { font-size: 30px; }
+  .markdown-section h2 { font-size: 23px; margin-top: 36px; padding-top: 22px; }
+  .markdown-section h3 { font-size: 18px; }
+  .markdown-section p.k3-lead { font-size: 17px; }
+  .k3-table-wrap > table { min-width: 560px; }
+  .markdown-section pre { font-size: 13px; padding: 14px; }
+  .k3-modal { padding: 12px 10px 10px; }
+  .k3-modal-list { max-height: 62vh; }
+}
+@media (max-width: 559px) { .k3-pager { grid-template-columns: 1fr; } .k3-pager .next { grid-column: 1; text-align: left; } }
+
+/* Comfortable touch targets */
+@media (pointer: coarse) {
+  .book .book-summary ul.summary li a { padding-top: 11px; padding-bottom: 11px; }
+  .k3-icon-btn { width: 44px; height: 44px; }
+  .k3-search-trigger { min-height: 44px; }
+  .k3-toc-inline li a { padding-top: 11px; padding-bottom: 11px; }
+}
+
+/* Print */
+@media print {
+  .k3-topbar, .k3-toc, .k3-toc-inline, .k3-backdrop, .k3-pager, .k3-modal, .book-summary { display: none !important; }
+  .book .book-body, .book .book-body .body-inner, .book .book-body .page-wrapper { position: static !important; left: 0 !important; overflow: visible !important; padding: 0 !important; }
+  .book .book-body .page-wrapper .page-inner { max-width: none; padding: 0; }
+  .k3-table-wrap { overflow: visible; }
+  .markdown-section a { color: inherit; border: 0; }
+  .markdown-section pre, .markdown-section blockquote { break-inside: avoid; }
+}

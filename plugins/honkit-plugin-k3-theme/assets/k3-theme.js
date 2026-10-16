@@ -78,7 +78,7 @@ require(["gitbook"], function (gitbook) {
     var bar = document.createElement("header"); bar.className = "k3-topbar";
     var left = document.createElement("div"); left.className = "k3-left";
     var menu = document.createElement("button"); menu.className = "k3-icon-btn k3-menu"; menu.setAttribute("aria-label", "Toggle navigation"); menu.textContent = "☰";
-    menu.addEventListener("click", function () { gitbook.sidebar.toggle(); });
+    menu.addEventListener("click", function () { setSidebar(!sidebarOpen()); });
     var logo = document.createElement("a"); logo.className = "k3-logo"; logo.setAttribute("aria-label", "Home");
     logo.addEventListener("click", function () { var f = document.querySelector(".book-summary ul.summary a"); if (f) f.click(); });
     left.appendChild(menu); left.appendChild(logo);
@@ -208,7 +208,61 @@ require(["gitbook"], function (gitbook) {
     }
   }
 
-  function init() { buildTopbar(); fitNav(); buildHeader(); buildToc(); buildPager(); }
+  /* ---- responsive helpers ---- */
+  var narrowMQ = window.matchMedia("(max-width: 999px)");
+  function bookEl() { return document.querySelector(".book"); }
+  function sidebarOpen() { return bookEl().classList.contains("with-summary"); }
+  function setSidebar(open) { bookEl().classList.toggle("with-summary", open); }
+  /* Pinned open on desktop, closed drawer on narrow screens. HonKit remembers the last state in localStorage,
+     which could leave a desktop reader without a sidebar (or a phone with the drawer covering the page). */
+  function syncSidebar(first) {
+    var book = bookEl(); if (!book) return;
+    var want = !narrowMQ.matches;
+    if (first) book.classList.add("k3-init");
+    if (sidebarOpen() !== want) setSidebar(want);
+    if (first) requestAnimationFrame(function () { requestAnimationFrame(function () { book.classList.remove("k3-init"); }); });
+  }
+  function buildBackdrop() {
+    if (document.querySelector(".k3-backdrop")) return;
+    var d = document.createElement("div"); d.className = "k3-backdrop";
+    d.addEventListener("click", function () { setSidebar(false); });
+    bookEl().appendChild(d);
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && narrowMQ.matches && bookEl() && sidebarOpen() && !(modal && !modal.hidden)) setSidebar(false);
+  });
+  var mqHandler = function () { syncSidebar(false); };
+  if (narrowMQ.addEventListener) narrowMQ.addEventListener("change", mqHandler); else if (narrowMQ.addListener) narrowMQ.addListener(mqHandler);
+
+  /* Tables scroll inside their own container */
+  function wrapTables() {
+    [].forEach.call(document.querySelectorAll(".markdown-section table"), function (t) {
+      if (t.parentElement && t.parentElement.classList.contains("k3-table-wrap")) return;
+      var w = document.createElement("div"); w.className = "k3-table-wrap"; t.parentNode.insertBefore(w, t); w.appendChild(t);
+    });
+  }
+
+  /* "On this page" for widths where the right-hand panel does not fit */
+  function buildInlineToc() {
+    var section = document.querySelector(".markdown-section"); if (!section) return;
+    var old = section.querySelector(".k3-toc-inline"); if (old) old.remove();
+    var heads = [].slice.call(section.querySelectorAll("h2[id], h3[id]")); if (heads.length < 3) return;
+    var d = document.createElement("details"); d.className = "k3-toc-inline";
+    var sum = document.createElement("summary"); sum.textContent = "On this page"; d.appendChild(sum);
+    var ul = document.createElement("ul");
+    heads.forEach(function (h) {
+      var li = document.createElement("li"); li.className = h.tagName.toLowerCase().replace("h", "l");
+      var a = document.createElement("a"); a.href = "#" + h.id; a.textContent = h.textContent;
+      a.addEventListener("click", function (e) { e.preventDefault(); d.open = false; h.scrollIntoView({ behavior: "smooth", block: "start" }); });
+      li.appendChild(a); ul.appendChild(li);
+    });
+    d.appendChild(ul);
+    var anchor = section.querySelector("p.k3-lead") || section.querySelector("h1");
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor.nextSibling);
+  }
+
+  var firstInit = true;
+  function init() { buildTopbar(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; fitNav(); buildHeader(); wrapTables(); buildInlineToc(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });
