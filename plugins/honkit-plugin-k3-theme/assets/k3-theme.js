@@ -208,6 +208,13 @@ require(["gitbook"], function (gitbook) {
     var section = document.querySelector(".markdown-section"); if (!section) return;
     var oldEyebrow = section.querySelector(".k3-eyebrow"); if (oldEyebrow) oldEyebrow.remove();
     var h1 = section.querySelector("h1"); if (!h1) return;
+    /* an icon in the title stays on the same line as the last word instead of wrapping alone */
+    [].forEach.call(h1.querySelectorAll("img"), function (img) {
+      if (img.parentElement.classList.contains("k3-nowrap")) return;
+      var prev = img.previousSibling, span = document.createElement("span"); span.className = "k3-nowrap"; span.style.whiteSpace = "nowrap";
+      if (prev && prev.nodeType === 3) { var m = prev.textContent.match(/(\S+)\s*$/); if (m) { prev.textContent = prev.textContent.slice(0, m.index); span.appendChild(document.createTextNode(m[1])); } }
+      img.parentNode.insertBefore(span, img); span.appendChild(img);
+    });
     var lead = section.querySelector("p.k3-lead"); if (lead) lead.classList.remove("k3-lead");
     var next = h1.nextElementSibling;
     if (next && next.tagName === "P" && !next.querySelector("img") && next.textContent.trim().length <= 240) next.classList.add("k3-lead");
