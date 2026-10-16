@@ -64,7 +64,7 @@ require(["gitbook"], function (gitbook) {
     });
     gitbook.events.bind("search.ready", function () { if (modal && !modal.hidden && lastQuery) runSearch(lastQuery); });
   }
-  function openSearch() { buildModal(); modal.hidden = false; document.documentElement.classList.add("k3-modal-open"); mInput.focus(); mInput.select(); runSearch(mInput.value); }
+  function openSearch() { buildModal(); var sc = scroller(); if (sc) document.documentElement.style.setProperty("--k3-sbw", (sc.offsetWidth - sc.clientWidth) + "px"); modal.hidden = false; document.documentElement.classList.add("k3-modal-open"); mInput.focus(); mInput.select(); runSearch(mInput.value); }
   function closeSearch() { if (!modal) return; modal.hidden = true; document.documentElement.classList.remove("k3-modal-open"); }
   document.addEventListener("keydown", function (e) {
     var tag = (e.target && e.target.tagName || "").toLowerCase(), typing = tag === "input" || tag === "textarea" || (e.target && e.target.isContentEditable);
@@ -90,7 +90,7 @@ require(["gitbook"], function (gitbook) {
     search.appendChild(trigger);
 
     var right = document.createElement("div"); right.className = "k3-right";
-    var gh = document.querySelector('.book-summary a[href*="github.com"]');
+    var gh = document.querySelector('.book-summary a[href*="github.com"]:not(.gitbook-link)');
     if (gh) { var g = document.createElement("a"); g.className = "k3-gh"; g.href = gh.href; g.target = "_blank"; g.rel = "noopener"; g.innerHTML = "<span>GitHub</span> ↗"; right.appendChild(g); }
     var t = document.createElement("button"); t.className = "k3-icon-btn"; t.setAttribute("aria-label", "Toggle light/dark theme"); t.title = "Toggle theme";
     var SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
