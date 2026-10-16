@@ -9,6 +9,7 @@
     "@lacspace/llms-txt": "^1.4.0",
     "@mermaid-js/mermaid-cli": "11.17.0",
     "honkit": "6.2.2",
+    "honkit-plugin-k3-theme": "file:plugins/honkit-plugin-k3-theme",
     "honkit-plugin-katex": "1.1.7",
     "honkit-plugin-mermaid-hybrid": "1.0.2"
   }

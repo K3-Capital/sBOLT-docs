@@ -16,7 +16,7 @@ The Stability Pool (each simply called SP) liquidity provision in BOLD is execut
 
 On the first deposit, the contract mints a constant amount of shares, and a constant amount of assets is transferred to limit the possibility of an inflation attack. An entry fee is not applied on the first deposit, performed on deployment of the contract.
 
-<figure><img src="../assets/technical-details/deposit-flow.png" alt=""><figcaption></figcaption></figure>
+![Deposit flow: the account deposits or mints with BOLD (1), sBOLD provides BOLD to the Stability Pools (2) and mints sBOLD to the account (3)](../assets/technical-details/deposit-flow.svg)
 
 sBOLD calculates the quantities to provide to each operational SP based on the configured weights in the contract storage.
 
@@ -28,7 +28,7 @@ $$
 
 The sBOLD withdrawal operations share the same compatible behaviour as deposit and mint. Accounts can withdraw assets and burn the corresponding sBOLD shares based on internally calculated BOLD/sBOLD exchange rate.
 
-<figure><img src="../assets/technical-details/withdraw-flow.png" alt=""><figcaption></figcaption></figure>
+![Withdraw flow: the account withdraws or redeems BOLD (1), sBOLD withdraws BOLD from the Stability Pools (2), burns sBOLD (3) and transfers BOLD to the account (4)](../assets/technical-details/withdraw-flow.svg)
 
 On withdrawal and redeem, accounts withdraw assets from the operational Stability Pools, based on the share’s portion over the total supply in the sBOLD protocol. That way, a fair quantity of primary assets are distributed to the account and burnt in share units.
 
@@ -40,7 +40,7 @@ $$
 
 sBOLD introduces a mechanism for collateral aggregation across each internally operational  Stability Pool on Liquity v2, which claims the accumulated liquidated collateral and swaps it for BOLD with a low boundary, based on slippage tolerance configuration. After the swaps are successfully executed, the contract deposits the swapped amount of BOLD with the same preset weights to each of the connected stability pools.
 
-<figure><img src="../assets/technical-details/swap-flow.png" alt=""><figcaption></figcaption></figure>
+![Swap flow: sBOLD claims collateral gains (1) and receives the collateral (2), swaps it for BOLD with the Swap Adapter (3, 4) and provides the BOLD to the Stability Pools (5)](../assets/technical-details/swap-flow.svg)
 
 The swap can be triggered by any account that can provide call data, which could be effective enough to result in an amount of primary assets equal to or more than the minimum calculated. The swaps can be partial and for a single collateral to ensure the system's flexibility, meaning that an account can swap only fractions of the collateral amount for one or more pools in case of insufficient market liquidity.
 

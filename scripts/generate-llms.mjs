@@ -10,13 +10,17 @@ const summaryPath = "SUMMARY.md";
 function parseSummary(summary) {
   const pages = [];
   let currentSection = null;
+  let sectionFromHeader = false;
 
   for (const line of summary.split("\n")) {
+    // "## Title" is a static section title: the pages listed under it belong to that section
+    const header = line.match(/^##\s+(.+?)\s*$/);
+    if (header) { currentSection = header[1]; sectionFromHeader = true; continue; }
     const match = line.match(/^(\s*)-?\s+\[([^\]]+)\]\(([^)]+\.md)\)\s*$/);
     if (!match) continue;
 
     const [, indent, title, source] = match;
-    const isTopLevel = indent.length === 0;
+    const isTopLevel = indent.length === 0 && !sectionFromHeader;
 
     if (isTopLevel) {
       currentSection = title;

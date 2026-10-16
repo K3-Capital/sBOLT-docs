@@ -1,12 +1,10 @@
-# Introducing sBOLD
-
-<figure><img src="assets/introducing-sbold/sbold-at-a-glance.png" alt=""><figcaption></figcaption></figure>
+# Introducing sBOLD![sBOLD logo](assets/brand/sBOLD-icon.svg)
 
 **sBOLD** is a yield-bearing tokenized representation of a deposit into Liquity’s v2 Stability Pools based on a weights set on deployment. The protocol will initially accept BOLD deposits and route them into the wstETH, wETH and rETH stability pools in fixed proportions (60%, 30% and 10%, respectively). In return, the depositor receives an ERC4626 token that could be integrated with third-party protocols like money markets, decentralized exchanges and yield trading platforms for improved capital efficiency.
 
 sBOLD possesses a rebalancing feature, by which the weights and the Stability Pools can be changed and the funds are provided with the new ratios to the respective Stability Pools set. The operation is only permitted to be executed by the vault administrator and only if the collateral left in the contract is less than maximum collateral in BOLD previously set.
 
-<figure><img src="assets/introducing-sbold/flow-of-funds.jpg" alt=""><figcaption><p>sBOLD: Flow of Funds</p></figcaption></figure>
+![sBOLD: Flow of Funds. A user deposits BOLD into the sBOLD Adapter (1), the adapter routes it to the wstETH, wETH and rETH Stability Pools, 60%, 30% and 10% (2), and sBOLD is minted to the user (3)](assets/introducing-sbold/flow-of-funds.svg)
 
 ## The yield-bearing component of sBOLD stems from two streams:
 

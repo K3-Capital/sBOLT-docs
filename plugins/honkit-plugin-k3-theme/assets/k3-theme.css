@@ -1,0 +1,479 @@
+/*
+ * K3 Capital documentation theme for HonKit.
+ * Brand tokens follow k3.capital (accent #2f05ff, ink #000119). Inter is bundled
+ * (SIL OFL) because the LT Superior brand fonts are not licensed for self-hosting here;
+ * swap --k3-font to change typography in one place.
+ */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  --k3-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --k3-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --k3-accent: #2f05ff;
+  --k3-accent-soft: rgba(47, 5, 255, .08);
+  --k3-bg: #ffffff;
+  --k3-bg-soft: #f6f7fb;
+  --k3-bg-code: #f6f7fb;
+  --k3-text: #1a1b2e;
+  --k3-text-strong: #000119;
+  --k3-text-muted: #5b6270;
+  --k3-line: #e6e9f0;
+  --k3-pill: #ececf1;
+  --k3-radius: 10px;
+  --k3-bar-h: 64px;
+  --k3-gutter: clamp(24px, 3.4vw, 48px);   /* outer breathing room for top bar, sidebar and right panel */
+  --k3-logo-filter: none;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --k3-accent: #8f7dff;
+  --k3-accent-soft: rgba(143, 125, 255, .16);
+  /* near-black neutral grey (no blue/violet tint); accent stays the K3 violet, lightened for contrast */
+  --k3-bg: #0e0e0f;
+  --k3-bg-soft: #1a1a1c;
+  --k3-bg-code: #161618;
+  --k3-text: #d2d2d7;
+  --k3-text-strong: #f5f5f7;
+  --k3-text-muted: #9d9da5;
+  --k3-line: #333337;
+  --k3-pill: #2a2a2e;
+  --k3-logo-filter: invert(1) hue-rotate(180deg);
+  color-scheme: dark;
+}
+
+/* ---------- Base ---------- */
+html, body, .book, .book .book-body, .book .book-body .body-inner,
+.book .book-body .page-wrapper .page-inner section.normal {
+  background: var(--k3-bg);
+  color: var(--k3-text);
+  font-family: var(--k3-font);
+}
+.book .book-body .page-wrapper .page-inner section.normal.markdown-section {
+  font-size: 16px; line-height: 1.7; font-weight: 400; letter-spacing: -0.003em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Top bar (logo | search | actions) ---------- */
+.book .book-header { display: none; }
+.k3-topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--k3-bar-h); z-index: 20; background: var(--k3-bg);
+  display: grid; grid-template-columns: 1fr minmax(0, 440px) 1fr; align-items: center; padding: 0 calc(var(--k3-gutter) + 14px); gap: 16px;
+}
+.k3-topbar .k3-left { display: flex; align-items: center; gap: 8px; }
+.k3-topbar .k3-right { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.k3-logo { display: block; height: 30px; width: 112px; cursor: pointer; border: 0 !important;
+  background: url("k3-logo.svg") left center / contain no-repeat; filter: var(--k3-logo-filter); }
+.k3-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border: 0; border-radius: 10px;
+  background: transparent; color: var(--k3-text-strong); font-size: 17px; cursor: pointer; }
+.k3-icon-btn:hover { background: var(--k3-bg-soft); }
+.k3-menu { display: none; }
+.k3-gh { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; border-radius: 10px;
+  background: var(--k3-text-strong); color: var(--k3-bg) !important; font: 600 14px var(--k3-font); text-decoration: none; border: 0 !important; }
+.k3-gh:hover { opacity: .88; }
+.k3-search { position: relative; min-width: 0; }
+.k3-search-trigger {
+  display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px 0 14px; cursor: pointer;
+  border: 1px solid var(--k3-line); border-radius: 12px; background: var(--k3-bg); color: var(--k3-text-muted);
+  font: 400 15px var(--k3-font); text-align: left; transition: border-color .12s, background .12s;
+}
+.k3-search-trigger:hover { border-color: var(--k3-text-muted); }
+.k3-search-trigger span { flex: 1; }
+.k3-search-trigger kbd, .k3-modal-field kbd { font: 500 12px var(--k3-font); color: var(--k3-text-muted); }
+/* replaced by the modal. NB: #book-search-results also WRAPS the page content, so only its results panel may be hidden */
+.book .book-summary #book-search-input, #book-search-results .search-results { display: none !important; }
+
+/* ---------- Search modal ---------- */
+.k3-modal { position: fixed; inset: 0; z-index: 100; display: flex; justify-content: center; align-items: flex-start; padding: 72px 16px 16px;
+  background: rgba(10, 10, 20, .42); backdrop-filter: blur(3px); }
+.k3-modal[hidden] { display: none; }
+.k3-modal-panel { width: min(680px, 100%); background: var(--k3-bg); border-radius: 20px; padding: 8px;
+  box-shadow: 0 24px 70px rgba(10, 10, 30, .28), 0 0 0 1px var(--k3-line); font-family: var(--k3-font); }
+.k3-modal-field { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; border: 1px solid var(--k3-line); border-radius: 14px; color: var(--k3-text-muted); }
+.k3-modal-field:focus-within { border-color: var(--k3-accent); }
+.k3-modal-field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--k3-text-strong); font: 400 18px var(--k3-font); }
+.k3-modal-field input::placeholder { color: var(--k3-text-muted); }
+.k3-modal-field kbd { padding: 3px 7px; border: 1px solid var(--k3-line); border-radius: 6px; background: var(--k3-bg-soft); }
+.k3-modal-list { max-height: min(56vh, 460px); overflow-y: auto; padding: 8px 0 2px; }
+.k3-s-msg { padding: 28px 16px; text-align: center; color: var(--k3-text-muted); font-size: 15px; }
+.k3-s-item { display: block; padding: 11px 14px; margin: 2px 0; border-radius: 12px; text-decoration: none !important; border: 0 !important; color: var(--k3-text); }
+.k3-s-item strong { display: block; color: var(--k3-text-strong); font-weight: 600; font-size: 15px; }
+.k3-s-item span { display: block; margin-top: 3px; color: var(--k3-text-muted); font-size: 13.5px; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.k3-s-item mark { background: var(--k3-accent-soft); color: var(--k3-accent); border-radius: 3px; padding: 0 1px; }
+.k3-s-item.active { background: var(--k3-pill); }
+/* Locking the page behind the modal hides its scrollbar; keep that space reserved so the content does not shift.
+   (Also keeps the content from jumping sideways between short pages and pages that scroll.) */
+.book .book-body .body-inner { scrollbar-gutter: stable; }
+html.k3-modal-open .book-body .body-inner { overflow: hidden; }
+@supports not (scrollbar-gutter: stable) { html.k3-modal-open .book-body .body-inner { padding-right: var(--k3-sbw, 0px); } }
+
+/* ---------- Sidebar (no divider, flat groups) ---------- */
+.book .book-summary, .book .book-body { top: var(--k3-bar-h); }
+.book .book-summary {
+  background: var(--k3-bg); border: 0; font-family: var(--k3-font);
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;          /* scrolls only if the nav is taller than the screen, without a visible bar */
+}
+.book .book-summary::-webkit-scrollbar { display: none; }
+.book .book-summary ul.summary { padding: 4px 8px 12px var(--k3-gutter); }
+.book .book-summary ul.summary li { margin: 0; }
+.book .book-summary ul.summary li a, .book .book-summary ul.summary li span {
+  display: block; padding: 7px 14px; margin: 1px 0; border-radius: 10px;
+  color: var(--k3-text-muted); font-size: 15px; font-weight: 450; background: transparent; text-decoration: none;
+  transition: background .12s, color .12s;
+}
+.book .book-summary ul.summary li a:hover { background: var(--k3-bg-soft); color: var(--k3-text-strong); text-decoration: none; }
+.book .book-summary ul.summary li.active > a, .book .book-summary ul.summary li.active > a:hover { background: var(--k3-pill); color: var(--k3-text-muted); font-weight: 550; }
+.book .book-summary ul.summary > li.chapter:has(> ul.articles) { margin-top: 18px; }
+.book .book-summary ul.summary > li.chapter:has(> ul.articles) > a {
+  font-size: 15px; font-weight: 650; color: var(--k3-text-strong); padding-bottom: 6px; letter-spacing: -0.005em;
+}
+.book .book-summary ul.summary > li.chapter:has(> ul.articles) > a:hover { background: transparent; }
+.book .book-summary ul.summary > li.chapter:has(> ul.articles).active > a { background: transparent; }
+.book .book-summary ul.summary ul.articles { padding: 0; margin: 0; }
+ /* section titles ("## Title" in SUMMARY.md) look like the group labels, and the pages under them are indented like sub-items */
+.book .book-summary ul.summary li.header {
+  margin: 18px 0 0; padding: 9px 14px 6px; background: transparent; border: 0; text-transform: none; letter-spacing: -0.005em;
+  font: 650 15px var(--k3-font); color: var(--k3-text-strong);
+}
+.book .book-summary ul.summary li.k3-under-header > a { margin-left: 16px; padding: 5px 12px; font-size: 14px; }
+.book .book-summary ul.summary li.header + li.chapter:not(.k3-under-header) { margin-top: 0; }
+
+.book .book-summary ul.summary ul.articles li a { margin-left: 16px; padding: 5px 12px; font-size: 14px; }   /* indent the whole pill, keep inner padding symmetric */
+/* never truncate titles: wrap instead of "..." */
+.book .book-summary ul.summary li a, .book .book-summary ul.summary li span {
+  white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.4; word-break: normal; overflow-wrap: anywhere;
+}
+.book .book-summary ul.summary > li.chapter:has(> ul.articles) + li.chapter:not(:has(> ul.articles)) { margin-top: 18px; }
+.book .book-summary ul.summary li.divider { background: transparent; height: 0; margin: 8px 0; }
+.book .book-summary ul.summary li:has(> a.gitbook-link) { display: none; }
+/* llms.txt / llms-full.txt stay in SUMMARY.md (build gates require them) and stay published; they are just not shown in the nav */
+.book .book-summary ul.summary li:has(> a[href$="llms.txt"]), .book .book-summary ul.summary li:has(> a[href$="llms-full.txt"]) { display: none; }
+/* The GitHub entry stays in SUMMARY.md (the top-bar GitHub button reads its link from there) but is not repeated in the sidebar */
+.book .book-summary ul.summary li:has(> a[href*="github.com"]) { display: none; }
+
+/* ---------- Content ---------- */
+.book .book-body .page-wrapper .page-inner { max-width: 780px; padding: 40px 28px 96px; }
+.book .book-body .navigation { display: none; }          /* replaced by footer cards */
+.markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4 {
+  font-family: var(--k3-font); color: var(--k3-text-strong); font-weight: 650; letter-spacing: -0.022em; line-height: 1.2;
+}
+.markdown-section h1 { font-size: 38px; margin: 0 0 20px; font-weight: 700; letter-spacing: -0.03em; }
+.markdown-section h2 { font-size: 26px; margin: 44px 0 16px; padding-top: 26px; border-top: 1px solid var(--k3-line); }
+/* an image in the page title (e.g. a product icon) scales with the title text */
+.markdown-section h1 img { display: inline-block; height: 1.15em; width: auto; margin: 0 0 0 .3em; vertical-align: -0.2em; border-radius: 0; }
+.markdown-section h1 + h2 { border-top: 0; padding-top: 0; margin-top: 32px; }
+.markdown-section h3 { font-size: 20px; margin: 32px 0 10px; }
+.markdown-section h4 { font-size: 16px; margin: 24px 0 8px; }
+.markdown-section p, .markdown-section li { color: var(--k3-text); }
+.markdown-section strong { color: var(--k3-text-strong); font-weight: 600; }
+.markdown-section a { color: var(--k3-accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--k3-accent) 35%, transparent); }
+.markdown-section a:hover { border-bottom-color: var(--k3-accent); }
+.markdown-section h1 a, .markdown-section h2 a, .markdown-section h3 a { border: 0; }
+.markdown-section img { border-radius: var(--k3-radius); max-width: 100%; }
+.markdown-section hr { background: var(--k3-line); height: 1px; margin: 32px 0; }
+
+.markdown-section code, .markdown-section pre { font-family: var(--k3-mono); }
+.markdown-section :not(pre) > code {
+  background: var(--k3-bg-soft); border: 1px solid var(--k3-line); color: var(--k3-text-strong);
+  border-radius: 6px; padding: .12em .4em; font-size: .86em;
+}
+.markdown-section pre {
+  background: var(--k3-bg-code); border: 1px solid var(--k3-line); border-radius: 12px;
+  padding: 16px 18px; font-size: 13.5px; line-height: 1.65; margin: 22px 0;
+}
+.markdown-section pre code { background: transparent; border: 0; padding: 0; color: var(--k3-text); font-size: inherit; }
+
+.markdown-section blockquote {
+  margin: 24px 0; padding: 14px 18px; border: 1px solid var(--k3-line); border-left: 3px solid var(--k3-accent);
+  background: var(--k3-bg-soft); border-radius: 0 var(--k3-radius) var(--k3-radius) 0; color: var(--k3-text);
+}
+.markdown-section blockquote > :first-child { margin-top: 0; } .markdown-section blockquote > :last-child { margin-bottom: 0; }
+
+.markdown-section table { display: table; width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14.5px; }
+.markdown-section table th {
+  background: transparent; text-align: left; font-weight: 600; color: var(--k3-text-strong);
+  border: 0; border-bottom: 1px solid var(--k3-line); padding: 10px 14px;
+}
+.markdown-section table td { border: 0; border-bottom: 1px solid var(--k3-line); padding: 12px 14px; vertical-align: top; }
+.markdown-section table tr, .markdown-section table tr:nth-child(2n) { background: transparent; }
+.markdown-section table tbody tr:hover { background: var(--k3-bg-soft); }
+
+/* diagrams / math */
+.markdown-section code.lang-mermaid svg, .markdown-section figure { max-width: 100%; height: auto; }
+:root[data-theme="dark"] .markdown-section pre:has(code.lang-mermaid) { background: #fff; border-color: #fff; }
+:root[data-theme="dark"] .markdown-section code.lang-mermaid, :root[data-theme="dark"] .markdown-section code.lang-mermaid * { color: #151517; }
+:root[data-theme="dark"] .markdown-section code.lang-mermaid text, :root[data-theme="dark"] .markdown-section code.lang-mermaid tspan { fill: #151517; }
+.markdown-section .katex-display { overflow-x: auto; overflow-y: hidden; }
+
+/* syntax colours (highlight.js classes), tuned for both themes */
+.hljs-comment, .hljs-quote { color: var(--k3-text-muted); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-built_in { color: #8a3ffc; }
+.hljs-string, .hljs-attr, .hljs-regexp { color: #0f7b4d; }
+.hljs-number, .hljs-symbol, .hljs-bullet { color: #b4540a; }
+.hljs-title, .hljs-section, .hljs-name, .hljs-type { color: var(--k3-accent); }
+:root[data-theme="dark"] .hljs-keyword, :root[data-theme="dark"] .hljs-literal, :root[data-theme="dark"] .hljs-built_in { color: #c4a8ff; }
+:root[data-theme="dark"] .hljs-string, :root[data-theme="dark"] .hljs-attr { color: #6fd9a0; }
+:root[data-theme="dark"] .hljs-number { color: #f2a65a; }
+
+
+
+/* ---------- Docs switcher (top bar) ---------- */
+.k3-switch { position: relative; margin-left: 6px; }
+.k3-switch-btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px 0 12px; cursor: pointer;
+  border: 0; border-radius: 10px; background: transparent; color: var(--k3-text-strong); font: 600 15px var(--k3-font);
+}
+.k3-switch-btn:hover, .k3-switch.open .k3-switch-btn { background: var(--k3-bg-soft); }
+.k3-switch-btn:focus-visible, .k3-switch-item:focus-visible { outline: 2px solid var(--k3-accent); outline-offset: 2px; }
+.k3-sw-chev { color: var(--k3-text-muted); transition: transform .15s; }
+.k3-switch.open .k3-sw-chev { transform: rotate(180deg); }
+.k3-switch-menu {
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; min-width: 270px; padding: 6px;
+  background: var(--k3-bg); border: 1px solid var(--k3-line); border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(10, 10, 30, .18);
+}
+.k3-switch-menu[hidden] { display: none; }
+.k3-switch-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; text-decoration: none !important; border: 0 !important; color: var(--k3-text); }
+.k3-switch-item:hover, .k3-switch-item:focus { background: var(--k3-bg-soft); }
+.k3-si-text { flex: 1; min-width: 0; }
+.k3-si-text strong { display: block; font: 600 14.5px var(--k3-font); color: var(--k3-text-strong); }
+.k3-si-text small { display: block; margin-top: 2px; font: 400 12.5px var(--k3-font); color: var(--k3-text-muted); }
+.k3-si-check { color: var(--k3-accent); visibility: hidden; flex: none; }
+.k3-switch-item.current .k3-si-check { visibility: visible; }
+@media (max-width: 760px) {
+  .k3-switch { margin-left: 0; }
+  .k3-switch-btn { padding: 0 6px 0 8px; font-size: 14px; gap: 3px; }
+  .k3-switch-menu { position: fixed; top: 68px; left: 10px; right: 10px; min-width: 0; }
+}
+@media print { .k3-switch { display: none !important; } }
+
+/* ---------- Copy buttons ---------- */
+.k3-code {   /* the wrapper carries the code-block look; the button lives in its own gutter, so it never covers (scrolling) code */
+  position: relative; margin: 22px 0; padding-right: 54px;
+  background: var(--k3-bg-code); border: 1px solid var(--k3-line); border-radius: 12px;
+}
+.k3-code > pre { margin: 0; background: transparent; border: 0; border-radius: 12px 0 0 12px; padding-right: 8px; }
+.k3-copy {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; cursor: pointer; padding: 0;
+  border: 1px solid var(--k3-line); background: var(--k3-bg); color: var(--k3-text-muted);
+  transition: color .12s, border-color .12s, background .12s;
+}
+.k3-copy:hover { color: var(--k3-text-strong); border-color: var(--k3-text-muted); }
+.k3-copy:focus-visible { outline: 2px solid var(--k3-accent); outline-offset: 2px; }
+.k3-copy.copied { color: #027a48; border-color: #027a48; background: color-mix(in srgb, #027a48 10%, var(--k3-bg)); }
+:root[data-theme="dark"] .k3-copy.copied { color: #4ade80; border-color: #4ade80; }
+.k3-copy-block { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 9px; }
+.k3-copy-inline { width: 24px; height: 24px; margin-left: 6px; vertical-align: middle; border-radius: 7px; }
+.k3-copy-inline svg { width: 13px; height: 13px; }
+@media (pointer: coarse) { .k3-code { padding-right: 58px; } .k3-copy-block { width: 40px; height: 40px; } .k3-copy-inline { width: 32px; height: 32px; } }
+@media print { .k3-copy { display: none !important; } .k3-code { padding-right: 0; } }
+
+
+/* dark theme: neutral black shadows and backdrops instead of the navy-tinted ones used on light */
+:root[data-theme="dark"] .k3-modal, :root[data-theme="dark"] .k3-backdrop { background: rgba(0, 0, 0, .66); }
+:root[data-theme="dark"] .k3-modal-panel, :root[data-theme="dark"] .k3-switch-menu, :root[data-theme="dark"] .k3-more-menu, :root[data-theme="dark"] .book.k3-drawer-open .book-summary { box-shadow: 0 18px 50px rgba(0, 0, 0, .55), 0 0 0 1px var(--k3-line); }
+
+/* ---------- Page header: section label, title, intro line ---------- */
+.k3-eyebrow { font: 600 15px var(--k3-font); color: var(--k3-text-strong); margin: 0 0 10px; letter-spacing: -0.005em; }
+.markdown-section > .k3-eyebrow + h1 { margin-top: 0; }
+.markdown-section p.k3-lead { font-size: 19px; line-height: 1.65; color: var(--k3-text-muted); margin: -6px 0 28px; max-width: 640px; }
+.markdown-section p.k3-lead strong { color: var(--k3-text-strong); }
+.markdown-section p.k3-lead + h2 { margin-top: 36px; }
+
+/* ---------- Right: "On this page" ---------- */
+.k3-toc { display: none; }
+@media (min-width: 1240px) {
+  .book .book-body .page-wrapper { box-sizing: border-box; padding-right: calc(var(--k3-gutter) + 250px); }
+  .k3-toc { display: block; position: fixed; top: 96px; right: calc(var(--k3-gutter) + 14px); width: 210px; font-size: 13px; }
+  .k3-toc h4 { margin: 0 0 10px; font: 650 12px var(--k3-font); letter-spacing: .06em; text-transform: uppercase; color: var(--k3-text-strong); }
+  .k3-toc ul { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--k3-line); }
+  .k3-toc li a { display: block; padding: 5px 0 5px 14px; margin-left: -1px; border-left: 2px solid transparent;
+    color: var(--k3-text-muted); text-decoration: none; line-height: 1.4; }
+  .k3-toc li.l3 a { padding-left: 28px; }
+  .k3-toc li a:hover { color: var(--k3-text-strong); }
+  /* colour + bar only: a heavier weight is wider and re-wraps long entries, making the panel jump while scrolling */
+  .k3-toc li.active a { color: var(--k3-accent); border-left-color: var(--k3-accent); }
+}
+
+/* ---------- Footer prev / next cards ---------- */
+.k3-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 64px; }
+.k3-pager a { display: block; padding: 16px 18px; border: 1px solid var(--k3-line); border-radius: 12px; text-decoration: none !important;
+  color: var(--k3-text-strong); transition: border-color .12s, background .12s; }
+.k3-pager a:hover { border-color: var(--k3-accent); background: var(--k3-accent-soft); }
+.k3-pager small { display: block; font-size: 12px; color: var(--k3-text-muted); margin-bottom: 4px; }
+.k3-pager span { font-weight: 600; }
+.k3-pager .next { grid-column: 2; text-align: right; }
+.k3-pager .prev:only-child { grid-column: 1; }
+
+::selection { background: var(--k3-accent); color: #fff; }
+
+/* =====================================================================================
+   Responsive layout
+   >= 1240  sidebar + content + "On this page" panel
+   1000-1239 sidebar + content (inline "On this page" menu)
+   < 1000   sidebar becomes a slide-in drawer (closed by default) with a backdrop
+   < 760    compact top bar (search collapses to an icon)
+   < 560    single-column pager, GitHub button hidden
+   ===================================================================================== */
+
+/* One scroll container at every width. HonKit switches to a different one below 1240px,
+   which breaks anything that tracks scrolling; keep .body-inner as the scroller. */
+@media (max-width: 1240px) {
+  .book .book-body { overflow: hidden; padding-bottom: 0; }
+  .book .book-body .body-inner { position: absolute; top: 0; right: 0; bottom: 0; left: 0; min-height: 0; }
+}
+
+/* Tables scroll sideways inside their own container instead of being clipped */
+.k3-table-wrap {
+  overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 24px 0; max-width: 100%;
+  background:
+    linear-gradient(to right, var(--k3-bg) 30%, rgba(255,255,255,0)) left center / 40px 100% no-repeat local,
+    linear-gradient(to left, var(--k3-bg) 30%, rgba(255,255,255,0)) right center / 40px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.16), rgba(0,0,0,0)) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.16), rgba(0,0,0,0)) right center / 12px 100% no-repeat scroll;
+}
+.k3-table-wrap > table { margin: 0; }
+.markdown-section pre, .markdown-section .katex-display { max-width: 100%; overflow-x: auto; }
+.markdown-section :not(pre) > code { overflow-wrap: break-word; }   /* unlike `anywhere`, keeps a word whole unless it cannot fit, so table columns are not squeezed */
+.markdown-section p.k3-lead code { font-size: .8em; }
+.markdown-section h1 code, .markdown-section h2 code, .markdown-section h3 code, .markdown-section h4 code {
+  background: none; border: 0; padding: 0; font-size: .92em; color: inherit;
+}
+
+/* Inline "On this page" (the right-hand panel needs >= 1240px) */
+.k3-toc-inline { display: none; margin: 0 0 28px; border: 1px solid var(--k3-line); border-radius: 12px; background: var(--k3-bg); }
+.k3-toc-inline summary { cursor: pointer; list-style: none; padding: 12px 16px; font: 600 14px var(--k3-font); color: var(--k3-text-strong); display: flex; align-items: center; justify-content: space-between; }
+.k3-toc-inline summary::-webkit-details-marker { display: none; }
+.k3-toc-inline summary::after { content: "▾"; color: var(--k3-text-muted); transition: transform .15s; }
+.k3-toc-inline[open] summary::after { transform: rotate(180deg); }
+.k3-toc-inline ul { list-style: none; margin: 0; padding: 0 8px 10px; }
+.k3-toc-inline li a { display: block; padding: 8px 10px; border: 0 !important; border-radius: 8px; color: var(--k3-text-muted); font-size: 14.5px; text-decoration: none; }
+.k3-toc-inline li.l3 a { padding-left: 24px; }
+.k3-toc-inline li a:hover { background: var(--k3-bg-soft); color: var(--k3-text-strong); }
+@media (max-width: 1239px) { .k3-toc-inline { display: block; } }
+
+/* Sidebar as a drawer below 1000px */
+.k3-backdrop { display: none; }
+@media (max-width: 999px) {
+  .k3-menu { display: inline-flex; }
+  .book .book-summary {
+    position: fixed; top: var(--k3-bar-h); bottom: 0; left: 0 !important; width: min(340px, 88vw) !important; z-index: 30;
+    transform: translateX(-104%); transition: transform .32s cubic-bezier(.22, .8, .24, 1); background: var(--k3-bg);
+  }
+  .book.k3-drawer-open .book-summary { transform: none; box-shadow: 0 0 48px rgba(10, 10, 30, .22); }   /* own open state: HonKit renders narrow pages with its menu open */
+  .book.k3-init .book-summary { transition: none !important; }
+  .book .book-body, .book.with-summary .book-body { left: 0 !important; right: 0 !important; transform: none !important; }
+  .book.with-summary { overflow: visible; }
+  .k3-backdrop { display: block; position: fixed; inset: var(--k3-bar-h) 0 0 0; z-index: 25; background: rgba(10, 10, 20, .42);
+    opacity: 0; pointer-events: none; transition: opacity .32s ease; }
+  .book.k3-drawer-open .k3-backdrop { opacity: 1; pointer-events: auto; }
+  .book .book-body .page-wrapper .page-inner { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); }
+}
+
+/* Compact top bar */
+@media (max-width: 999px) { .k3-topbar { grid-template-columns: 1fr minmax(0, 340px) 1fr; padding: 0 max(16px, env(safe-area-inset-left)); } }
+@media (max-width: 760px) {
+  .k3-topbar { display: flex; gap: 4px; padding: 0 max(10px, env(safe-area-inset-left)) 0 max(10px, env(safe-area-inset-right)); }
+  .k3-left { flex: 1; min-width: 0; }
+  .k3-right { flex: 0 0 auto; }
+  .k3-search { flex: 0 0 auto; }
+  .k3-search-trigger { width: 40px; height: 40px; padding: 0; justify-content: center; border-color: transparent; }
+  .k3-search-trigger span, .k3-search-trigger kbd { display: none; }
+  .k3-search-trigger:hover { border-color: transparent; background: var(--k3-bg-soft); }
+  .k3-logo { width: 96px; height: 26px; }
+  .k3-gh span { display: inline; }
+}
+@media (max-width: 559px) { .k3-gh { display: none; } }
+
+/* Content scale on small screens */
+@media (max-width: 760px) {
+  .book .book-body .page-wrapper .page-inner { padding-top: 24px; padding-bottom: 72px; }
+  .markdown-section h1 { font-size: 30px; }
+  .markdown-section h2 { font-size: 23px; margin-top: 36px; padding-top: 22px; }
+  .markdown-section h3 { font-size: 18px; }
+  .markdown-section p.k3-lead { font-size: 17px; }
+  .k3-table-wrap > table { min-width: 560px; }
+  .markdown-section pre { font-size: 13px; padding: 14px; }
+  .k3-modal { padding: 12px 10px 10px; }
+  .k3-modal-list { max-height: 62vh; }
+}
+@media (max-width: 559px) { .k3-pager { grid-template-columns: 1fr; } .k3-pager .next { grid-column: 1; text-align: left; } }
+
+/* Comfortable touch targets */
+@media (pointer: coarse) {
+  .book .book-summary ul.summary li a { padding-top: 11px; padding-bottom: 11px; }
+  .k3-icon-btn { width: 44px; height: 44px; }
+  .k3-search-trigger { min-height: 44px; }
+  .k3-toc-inline li a { padding-top: 11px; padding-bottom: 11px; }
+}
+
+/* Print */
+@media print {
+  .k3-topbar, .k3-toc, .k3-toc-inline, .k3-backdrop, .k3-pager, .k3-modal, .book-summary { display: none !important; }
+  .book .book-body, .book .book-body .body-inner, .book .book-body .page-wrapper { position: static !important; left: 0 !important; overflow: visible !important; padding: 0 !important; }
+  .book .book-body .page-wrapper .page-inner { max-width: none; padding: 0; }
+  .k3-table-wrap { overflow: visible; }
+  .markdown-section a { color: inherit; border: 0; }
+  .markdown-section pre, .markdown-section blockquote { break-inside: avoid; }
+}
+
+/* =====================================================================================
+   Phone navigation (under 760px)
+   top bar:  row 1 = logo | search | more (...)      row 2 = burger + breadcrumb (section > page)
+   drawer:   full height; logo + system/light/dark switch, docs switcher, then the navigation
+   ===================================================================================== */
+.k3-crumbs, .k3-more, .k3-drawer-head, .k3-drawer-switch { display: none; }
+.k3-more { position: relative; }
+.k3-more-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; min-width: 210px; padding: 6px;
+  background: var(--k3-bg); border: 1px solid var(--k3-line); border-radius: 14px; box-shadow: 0 18px 50px rgba(10, 10, 30, .18); }
+.k3-more-menu[hidden] { display: none; }
+.k3-more-item { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 10px; text-decoration: none !important; border: 0 !important;
+  color: var(--k3-text-strong); font: 500 15px var(--k3-font); }
+.k3-more-item:hover, .k3-more-item:focus-visible { background: var(--k3-bg-soft); outline: none; }
+.k3-more-btn:focus-visible, .k3-menu-m:focus-visible, .k3-seg button:focus-visible { outline: 2px solid var(--k3-accent); outline-offset: 2px; }
+
+@media (max-width: 999px) {
+  :root { --k3-bar-h: 100px; }
+  .k3-topbar { display: grid; grid-template-columns: 1fr minmax(0, 320px) auto; grid-template-rows: 56px 44px; gap: 0 2px; align-items: center;
+    padding: 0 max(12px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left)); }
+  .k3-topbar .k3-left { grid-column: 1; grid-row: 1; }
+  .k3-topbar .k3-search { grid-column: 2; grid-row: 1; }
+  .k3-topbar .k3-right { grid-column: 3; grid-row: 1; }
+  .k3-left .k3-menu, .k3-left .k3-switch, .k3-right .k3-gh, .k3-right .k3-theme-btn { display: none; }   /* these move into the drawer / the more menu */
+  .k3-more { display: block; }
+  .k3-crumbs { display: flex; grid-column: 1 / -1; grid-row: 2; align-items: center; gap: 6px; height: 44px; min-width: 0; margin-left: -10px;
+    border-top: 1px solid color-mix(in srgb, var(--k3-line) 60%, transparent); }
+  .k3-menu-m { flex: none; }
+  .k3-crumb-section { flex: 0 1 auto; max-width: 42%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--k3-text-muted); font: 500 14.5px var(--k3-font); }
+  .k3-crumb-sep { flex: none; display: inline-flex; color: var(--k3-text-muted); }
+  .k3-crumb-page { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--k3-text-strong); font: 650 15px var(--k3-font); }
+  .k3-crumbs:not(.has-section) .k3-crumb-section, .k3-crumbs:not(.has-section) .k3-crumb-sep { display: none; }
+  .k3-crumbs.section-hidden .k3-crumb-section, .k3-crumbs.section-hidden .k3-crumb-sep { display: none; }
+  .k3-crumbs.measure .k3-crumb-section, .k3-crumbs.measure .k3-crumb-page { flex: none; max-width: none; overflow: visible; }
+  .k3-more-menu { right: -4px; }
+
+  /* the drawer covers the whole screen height, above the top bar */
+  .book .book-summary { top: 0; z-index: 40; width: min(340px, 88vw) !important; }
+  .k3-backdrop { inset: 0; z-index: 35; }
+  .k3-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 10px 38px; }
+  .k3-drawer-logo { flex: none; }
+  .k3-seg { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--k3-line); border-radius: 999px; background: var(--k3-bg); }
+  .k3-seg button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 30px; padding: 0; border: 0; border-radius: 999px;
+    background: transparent; color: var(--k3-text-muted); cursor: pointer; }
+  .k3-seg button[aria-pressed="true"] { background: var(--k3-pill); color: var(--k3-text-strong); }
+  .k3-drawer-switch { display: block; padding: 6px 16px 8px 24px; }
+  .k3-drawer-switch .k3-switch { margin: 0; }
+  .k3-drawer-switch .k3-switch-btn { width: 100%; justify-content: space-between; height: 46px; padding: 0 14px; border: 1px solid var(--k3-line); border-radius: 12px; font: 600 15px var(--k3-font); background: var(--k3-bg); }
+  .k3-drawer-switch .k3-switch-btn:hover, .k3-drawer-switch .k3-switch.open .k3-switch-btn { background: var(--k3-bg-soft); }
+  .k3-drawer-switch .k3-switch-menu { position: absolute; top: calc(100% + 6px); left: 0; right: 0; min-width: 0; }
+  .book .book-summary ul.summary { padding-top: 0; }
+}
+@media (max-width: 759px) {          /* on phones the search collapses to an icon */
+  .k3-topbar { grid-template-columns: 1fr auto auto; }
+  .k3-search-trigger { width: 44px; }
+}
