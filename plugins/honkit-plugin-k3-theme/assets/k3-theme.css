@@ -202,6 +202,13 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 :root[data-theme="dark"] .hljs-string, :root[data-theme="dark"] .hljs-attr { color: #6fd9a0; }
 :root[data-theme="dark"] .hljs-number { color: #f2a65a; }
 
+/* ---------- Page header: section label, title, intro line ---------- */
+.k3-eyebrow { font: 600 15px var(--k3-font); color: var(--k3-text-strong); margin: 0 0 10px; letter-spacing: -0.005em; }
+.markdown-section > .k3-eyebrow + h1 { margin-top: 0; }
+.markdown-section p.k3-lead { font-size: 19px; line-height: 1.65; color: var(--k3-text-muted); margin: -6px 0 28px; max-width: 640px; }
+.markdown-section p.k3-lead strong { color: var(--k3-text-strong); }
+.markdown-section p.k3-lead + h2 { margin-top: 36px; }
+
 /* ---------- Right: "On this page" ---------- */
 .k3-toc { display: none; }
 @media (min-width: 1240px) {

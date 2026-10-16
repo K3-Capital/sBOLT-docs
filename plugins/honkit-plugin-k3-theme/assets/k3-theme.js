@@ -160,7 +160,24 @@ require(["gitbook"], function (gitbook) {
   }
   window.addEventListener("resize", fitNav);
 
-  function init() { buildTopbar(); fitNav(); buildToc(); buildPager(); }
+  /* Page header like modern docs: small section label above the title, short intro line below it. */
+  function buildHeader() {
+    var section = document.querySelector(".markdown-section"); if (!section) return;
+    var oldEyebrow = section.querySelector(".k3-eyebrow"); if (oldEyebrow) oldEyebrow.remove();
+    var h1 = section.querySelector("h1"); if (!h1) return;
+    var lead = section.querySelector("p.k3-lead"); if (lead) lead.classList.remove("k3-lead");
+    var next = h1.nextElementSibling;
+    if (next && next.tagName === "P" && !next.querySelector("img") && next.textContent.trim().length <= 240) next.classList.add("k3-lead");
+    var active = document.querySelector(".book-summary li.active");
+    var group = active && active.parentElement && active.parentElement.closest("li.chapter");
+    var label = group && group !== active && group.querySelector(":scope > a, :scope > span");
+    if (label) {
+      var e = document.createElement("div"); e.className = "k3-eyebrow"; e.textContent = label.textContent.trim();
+      section.insertBefore(e, h1);
+    }
+  }
+
+  function init() { buildTopbar(); fitNav(); buildHeader(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });
