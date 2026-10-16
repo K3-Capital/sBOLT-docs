@@ -1,0 +1,166 @@
+/* K3 theme behaviour: theme toggle, "On this page" TOC with scroll-spy, prev/next cards. */
+require(["gitbook"], function (gitbook) {
+  var KEY = "k3-docs-theme";
+  function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function apply(mode) { document.documentElement.setAttribute("data-theme", mode); }
+  apply(stored() || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
+  function scroller() { return document.querySelector(".book-body .body-inner"); }
+  var spy;
+
+  var ICON_SEARCH = '<svg class="k3-ico" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+  var modal, mInput, mList, mItems = [], mActive = -1, lastQuery = "";
+
+  function escapeHtml(t) { return t.replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function plain(html) { var d = document.createElement("div"); d.innerHTML = html || ""; return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+  function snippet(body, q) {
+    var text = plain(body), terms = q.toLowerCase().split(/\s+/).filter(Boolean), at = 0;
+    for (var n = 0; n < terms.length; n++) { var f = text.toLowerCase().indexOf(terms[n]); if (f >= 0) { at = f; break; } }
+    var start = Math.max(0, at - 50), out = escapeHtml(text.substr(start, 170));
+    terms.forEach(function (t) { out = out.replace(new RegExp("(" + t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi"), "<mark>$1</mark>"); });
+    return (start > 0 ? "…" : "") + out + (start + 170 < text.length ? "…" : "");
+  }
+
+  function setActive(n) {
+    mActive = n;
+    mItems.forEach(function (el, i) { el.classList.toggle("active", i === n); });
+    if (mItems[n]) mItems[n].scrollIntoView({ block: "nearest" });
+  }
+  function message(html) { mItems = []; mActive = -1; mList.innerHTML = '<div class="k3-s-msg">' + html + "</div>"; }
+
+  function runSearch(q) {
+    lastQuery = q;
+    if (!q.trim()) { message("Type to search the documentation"); return; }
+    if (!gitbook.search || !gitbook.search.isInitialized()) { message("Search is loading…"); return; }
+    gitbook.search.query(q, 0, 12).then(function (res) {
+      if (mInput.value !== q) return;
+      if (!res.count) { message("No results for “" + escapeHtml(q) + "”"); return; }
+      mList.innerHTML = ""; mItems = [];
+      res.results.forEach(function (r) {
+        var a = document.createElement("a"); a.className = "k3-s-item";
+        a.href = gitbook.state.basePath + "/" + r.url;
+        a.innerHTML = "<strong>" + escapeHtml(r.title) + "</strong><span>" + snippet(r.body, q) + "</span>";
+        a.addEventListener("mousemove", function () { setActive(mItems.indexOf(a)); });
+        mList.appendChild(a); mItems.push(a);
+      });
+      setActive(0);
+    });
+  }
+
+  function buildModal() {
+    if (modal) return;
+    modal = document.createElement("div"); modal.className = "k3-modal"; modal.hidden = true;
+    modal.innerHTML = '<div class="k3-modal-panel" role="dialog" aria-modal="true" aria-label="Search documentation">' +
+      '<div class="k3-modal-field">' + ICON_SEARCH + '<input type="text" autocomplete="off" spellcheck="false" placeholder="Search the documentation…" aria-label="Search"><kbd>esc</kbd></div>' +
+      '<div class="k3-modal-list"></div></div>';
+    document.body.appendChild(modal);
+    mInput = modal.querySelector("input"); mList = modal.querySelector(".k3-modal-list");
+    modal.addEventListener("mousedown", function (e) { if (e.target === modal) closeSearch(); });
+    mInput.addEventListener("input", function () { runSearch(mInput.value); });
+    mInput.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown") { e.preventDefault(); if (mItems.length) setActive((mActive + 1) % mItems.length); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); if (mItems.length) setActive((mActive - 1 + mItems.length) % mItems.length); }
+      else if (e.key === "Enter") { if (mItems[mActive]) { e.preventDefault(); window.location.href = mItems[mActive].href; } }
+      else if (e.key === "Escape") { e.preventDefault(); closeSearch(); }
+    });
+    gitbook.events.bind("search.ready", function () { if (modal && !modal.hidden && lastQuery) runSearch(lastQuery); });
+  }
+  function openSearch() { buildModal(); modal.hidden = false; document.documentElement.classList.add("k3-modal-open"); mInput.focus(); mInput.select(); runSearch(mInput.value); }
+  function closeSearch() { if (!modal) return; modal.hidden = true; document.documentElement.classList.remove("k3-modal-open"); }
+  document.addEventListener("keydown", function (e) {
+    var tag = (e.target && e.target.tagName || "").toLowerCase(), typing = tag === "input" || tag === "textarea" || (e.target && e.target.isContentEditable);
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); modal && !modal.hidden ? closeSearch() : openSearch(); }
+    else if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openSearch(); }
+    else if (e.key === "Escape" && modal && !modal.hidden) closeSearch();
+  });
+
+  function buildTopbar() {
+    if (document.querySelector(".k3-topbar")) return;
+    var bar = document.createElement("header"); bar.className = "k3-topbar";
+    var left = document.createElement("div"); left.className = "k3-left";
+    var menu = document.createElement("button"); menu.className = "k3-icon-btn k3-menu"; menu.setAttribute("aria-label", "Toggle navigation"); menu.textContent = "☰";
+    menu.addEventListener("click", function () { gitbook.sidebar.toggle(); });
+    var logo = document.createElement("a"); logo.className = "k3-logo"; logo.setAttribute("aria-label", "Home");
+    logo.addEventListener("click", function () { var f = document.querySelector(".book-summary ul.summary a"); if (f) f.click(); });
+    left.appendChild(menu); left.appendChild(logo);
+
+    var search = document.createElement("div"); search.className = "k3-search";
+    var trigger = document.createElement("button"); trigger.type = "button"; trigger.className = "k3-search-trigger";
+    trigger.innerHTML = ICON_SEARCH + "<span>Search…</span><kbd>" + (/Mac/.test(navigator.platform) ? "⌘K" : "Ctrl K") + "</kbd>";
+    trigger.addEventListener("click", openSearch);
+    search.appendChild(trigger);
+
+    var right = document.createElement("div"); right.className = "k3-right";
+    var gh = document.querySelector('.book-summary a[href*="github.com"]');
+    if (gh) { var g = document.createElement("a"); g.className = "k3-gh"; g.href = gh.href; g.target = "_blank"; g.rel = "noopener"; g.innerHTML = "<span>GitHub</span> ↗"; right.appendChild(g); }
+    var t = document.createElement("button"); t.className = "k3-icon-btn"; t.setAttribute("aria-label", "Toggle light/dark theme"); t.title = "Toggle theme";
+    var SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    var SUN = SVG + '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+    var MOON = SVG + '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    /* shows the icon of the theme you will switch TO */
+    function paint() { t.innerHTML = document.documentElement.getAttribute("data-theme") === "dark" ? SUN : MOON; }
+    t.addEventListener("click", function () {
+      var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      apply(next); try { localStorage.setItem(KEY, next); } catch (e) {} paint();
+    });
+    paint(); right.appendChild(t);
+
+    bar.appendChild(left); bar.appendChild(search); bar.appendChild(right);
+    document.querySelector(".book").appendChild(bar);
+  }
+
+  function buildToc() {
+    var old = document.querySelector(".k3-toc"); if (old) old.remove();
+    var sc = scroller(); if (sc && spy) { sc.removeEventListener("scroll", spy); spy = null; }
+    var section = document.querySelector(".markdown-section"); if (!section) return;
+    var heads = [].slice.call(section.querySelectorAll("h2[id], h3[id]"));
+    if (heads.length < 2) return;
+    var toc = document.createElement("nav"); toc.className = "k3-toc"; toc.setAttribute("aria-label", "On this page");
+    var html = "<h4>On this page</h4><ul>";
+    heads.forEach(function (h) {
+      html += '<li class="' + h.tagName.toLowerCase().replace("h", "l") + '"><a href="#' + h.id + '"></a></li>';
+    });
+    toc.innerHTML = html + "</ul>";
+    [].forEach.call(toc.querySelectorAll("a"), function (a, i) {
+      a.textContent = heads[i].textContent;
+      a.addEventListener("click", function (e) { e.preventDefault(); heads[i].scrollIntoView({ behavior: "smooth", block: "start" }); });
+    });
+    document.querySelector(".book-body").appendChild(toc);
+    var items = [].slice.call(toc.querySelectorAll("li"));
+    spy = function () {
+      var top = sc.getBoundingClientRect().top + 40, cur = 0;
+      heads.forEach(function (h, i) { if (h.getBoundingClientRect().top <= top) cur = i; });
+      items.forEach(function (li, i) { li.classList.toggle("active", i === cur); });
+    };
+    sc.addEventListener("scroll", spy, { passive: true }); spy();
+  }
+
+  function buildPager() {
+    var section = document.querySelector(".markdown-section"); if (!section) return;
+    var old = section.querySelector(".k3-pager"); if (old) old.remove();
+    var prev = document.querySelector("a.navigation-prev"), next = document.querySelector("a.navigation-next");
+    if (!prev && !next) return;
+    var wrap = document.createElement("div"); wrap.className = "k3-pager";
+    function card(a, cls, label) {
+      var title = (a.getAttribute("aria-label") || "").replace(/^(Previous|Next) page:\s*/, "");
+      var el = document.createElement("a"); el.className = cls; el.href = a.getAttribute("href");
+      var s = document.createElement("small"); s.textContent = label; var t = document.createElement("span"); t.textContent = title;
+      el.appendChild(s); el.appendChild(t); wrap.appendChild(el);
+    }
+    if (prev) card(prev, "prev", "← Previous");
+    if (next) card(next, "next", "Next →");
+    section.appendChild(wrap);
+  }
+
+  /* Lock the sidebar when it overflows by only a few pixels: a scroll that barely moves is worse than none. */
+  function fitNav() {
+    var nav = document.querySelector(".book-summary"); if (!nav) return;
+    nav.style.overflowY = "auto";
+    nav.style.overflowY = nav.scrollHeight - nav.clientHeight <= 24 ? "hidden" : "auto";
+  }
+  window.addEventListener("resize", fitNav);
+
+  function init() { buildTopbar(); fitNav(); buildToc(); buildPager(); }
+  gitbook.events.bind("page.change", init);
+  init();
+});

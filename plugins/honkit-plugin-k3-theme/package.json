@@ -1,0 +1,9 @@
+{
+  "name": "honkit-plugin-k3-theme",
+  "version": "1.0.0",
+  "description": "K3 Capital documentation theme for HonKit: modern layout, K3 brand tokens, light/dark",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": { "gitbook": ">=3.0.0" }
+}
