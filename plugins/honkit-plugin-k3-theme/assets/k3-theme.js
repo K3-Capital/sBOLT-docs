@@ -111,21 +111,39 @@ require(["gitbook"], function (gitbook) {
   /* Scroll-spy state. HonKit replaces the scroll container (.book-body .body-inner) on every page change, so nothing
      here may hold on to a specific element: the container is looked up on each update and scroll events are caught
      at document level (capture phase). */
-  var tocHeads = [], tocItems = [];
+  var tocHeads = [], tocItems = [], tocForced = null, tocForcedAt = 0;
+  function setActive(i) { tocItems.forEach(function (li, n) { li.classList.toggle("active", n === i); }); }
   function updateSpy() {
     var sc = scroller(); if (!sc || !tocHeads.length) return;
+    /* A clicked entry stays selected: the last sections are often too short to ever reach the top of the screen. */
+    if (tocForced !== null) {
+      var fr = tocHeads[tocForced].getBoundingClientRect(), sr = sc.getBoundingClientRect();
+      /* keep it while the smooth scroll is running, then only while that section is still on screen
+         (covers scrollbar drags and any other input that doesn't fire wheel/touch/key events) */
+      if (performance.now() - tocForcedAt < 1500 || (fr.bottom > sr.top && fr.top < sr.bottom)) { setActive(tocForced); return; }
+      tocForced = null;
+    }
     var top = sc.getBoundingClientRect().top + 40, cur = 0;
     tocHeads.forEach(function (h, i) { if (h.getBoundingClientRect().top <= top) cur = i; });
-    tocItems.forEach(function (li, i) { li.classList.toggle("active", i === cur); });
+    /* Scrolled to the very end: the last section is the one being read, even though its heading can't reach the top. */
+    var scrollable = sc.scrollHeight > sc.clientHeight + 4;
+    if (scrollable && sc.scrollTop > 0 && sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4) cur = tocHeads.length - 1;
+    setActive(cur);
   }
   document.addEventListener("scroll", function (e) {
     var t = e.target; if (t && t.classList && t.classList.contains("body-inner")) updateSpy();
   }, true);
   window.addEventListener("resize", updateSpy);
+  /* Any scrolling the reader does themselves hands control back to the scroll-spy. */
+  function release() { if (tocForced !== null) { tocForced = null; updateSpy(); } }
+  ["wheel", "touchmove"].forEach(function (ev) { document.addEventListener(ev, release, { passive: true }); });
+  document.addEventListener("keydown", function (e) {
+    if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].indexOf(e.key) >= 0) release();
+  });
 
   function buildToc() {
     var old = document.querySelector(".k3-toc"); if (old) old.remove();
-    tocHeads = []; tocItems = [];
+    tocHeads = []; tocItems = []; tocForced = null;
     var section = document.querySelector(".markdown-section"); if (!section) return;
     var heads = [].slice.call(section.querySelectorAll("h2[id], h3[id]"));
     if (heads.length < 2) return;
@@ -137,7 +155,7 @@ require(["gitbook"], function (gitbook) {
     toc.innerHTML = html + "</ul>";
     [].forEach.call(toc.querySelectorAll("a"), function (a, i) {
       a.textContent = heads[i].textContent;
-      a.addEventListener("click", function (e) { e.preventDefault(); heads[i].scrollIntoView({ behavior: "smooth", block: "start" }); });
+      a.addEventListener("click", function (e) { e.preventDefault(); tocForced = i; tocForcedAt = performance.now(); setActive(i); heads[i].scrollIntoView({ behavior: "smooth", block: "start" }); });
     });
     document.querySelector(".book-body").appendChild(toc);
     tocHeads = heads; tocItems = [].slice.call(toc.querySelectorAll("li"));
