@@ -311,8 +311,8 @@ require(["gitbook"], function (gitbook) {
   var ICON_BURGER = I('<path d="M4 7h16M4 12h16M4 17h16"/>');
   var ICON_KEBAB = I('<circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/>');
   var ICON_CRUMB = I('<path d="m9 6 6 6-6 6"/>', 14);
-  var SEG_ICONS = { system: I('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', 16), light: I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>', 16), dark: I('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 16) };
-  var SEG_LABELS = { system: "System theme", light: "Light theme", dark: "Dark theme" };
+  var SEG_ICONS = { light: I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>', 17), dark: I('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 17) };
+  var SEG_LABELS = { light: "Light theme", dark: "Dark theme" };
 
   function buildCrumbs() {
     var row = document.createElement("div"); row.className = "k3-crumbs";
@@ -359,11 +359,12 @@ require(["gitbook"], function (gitbook) {
     var logo = document.createElement("a"); logo.className = "k3-logo k3-drawer-logo"; logo.setAttribute("aria-label", "Home");
     logo.addEventListener("click", function () { var f = side.querySelector("ul.summary a"); if (f) f.click(); });
     var seg = document.createElement("div"); seg.className = "k3-seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Theme");
-    ["system", "light", "dark"].forEach(function (m) {
+    ["light", "dark"].forEach(function (m) {
       var b = document.createElement("button"); b.type = "button"; b.dataset.mode = m; b.setAttribute("aria-label", SEG_LABELS[m]); b.title = SEG_LABELS[m]; b.innerHTML = SEG_ICONS[m];
       b.addEventListener("click", function () { setMode(m); }); seg.appendChild(b);
     });
-    function paintSeg() { var cur = currentMode(); [].forEach.call(seg.querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === cur)); }); }
+    /* two states, like the desktop toggle; the highlighted one is the theme in use (the OS setting until a choice is made) */
+    function paintSeg() { var cur = document.documentElement.getAttribute("data-theme"); [].forEach.call(seg.querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === cur)); }); }
     themeListeners.push(paintSeg); paintSeg();
     head.appendChild(logo); head.appendChild(seg); side.insertBefore(head, side.firstChild);
     var sw = buildSwitcher("block");
