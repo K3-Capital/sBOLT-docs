@@ -33,15 +33,15 @@
 :root[data-theme="dark"] {
   --k3-accent: #8f7dff;
   --k3-accent-soft: rgba(143, 125, 255, .16);
-  /* neutral dark grey (no blue/violet tint); accent stays the K3 violet, lightened for contrast */
-  --k3-bg: #1c1c1e;
-  --k3-bg-soft: #262629;
-  --k3-bg-code: #232326;
+  /* near-black neutral grey (no blue/violet tint); accent stays the K3 violet, lightened for contrast */
+  --k3-bg: #0e0e0f;
+  --k3-bg-soft: #1a1a1c;
+  --k3-bg-code: #161618;
   --k3-text: #d2d2d7;
   --k3-text-strong: #f5f5f7;
-  --k3-text-muted: #a1a1a9;
-  --k3-line: #38383c;
-  --k3-pill: #333337;
+  --k3-text-muted: #9d9da5;
+  --k3-line: #333337;
+  --k3-pill: #2a2a2e;
   --k3-logo-filter: invert(1) hue-rotate(180deg);
   color-scheme: dark;
 }
@@ -206,8 +206,8 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 /* diagrams / math */
 .markdown-section code.lang-mermaid svg, .markdown-section figure { max-width: 100%; height: auto; }
 :root[data-theme="dark"] .markdown-section pre:has(code.lang-mermaid) { background: #fff; border-color: #fff; }
-:root[data-theme="dark"] .markdown-section code.lang-mermaid, :root[data-theme="dark"] .markdown-section code.lang-mermaid * { color: #1c1c1e; }
-:root[data-theme="dark"] .markdown-section code.lang-mermaid text, :root[data-theme="dark"] .markdown-section code.lang-mermaid tspan { fill: #1c1c1e; }
+:root[data-theme="dark"] .markdown-section code.lang-mermaid, :root[data-theme="dark"] .markdown-section code.lang-mermaid * { color: #151517; }
+:root[data-theme="dark"] .markdown-section code.lang-mermaid text, :root[data-theme="dark"] .markdown-section code.lang-mermaid tspan { fill: #151517; }
 .markdown-section .katex-display { overflow-x: auto; overflow-y: hidden; }
 
 /* syntax colours (highlight.js classes), tuned for both themes */
@@ -275,7 +275,7 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 
 
 /* dark theme: neutral black shadows and backdrops instead of the navy-tinted ones used on light */
-:root[data-theme="dark"] .k3-modal, :root[data-theme="dark"] .k3-backdrop { background: rgba(0, 0, 0, .6); }
+:root[data-theme="dark"] .k3-modal, :root[data-theme="dark"] .k3-backdrop { background: rgba(0, 0, 0, .66); }
 :root[data-theme="dark"] .k3-modal-panel, :root[data-theme="dark"] .k3-switch-menu, :root[data-theme="dark"] .k3-more-menu, :root[data-theme="dark"] .book.k3-drawer-open .book-summary { box-shadow: 0 18px 50px rgba(0, 0, 0, .55), 0 0 0 1px var(--k3-line); }
 
 /* ---------- Page header: section label, title, intro line ---------- */
