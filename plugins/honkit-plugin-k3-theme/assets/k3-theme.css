@@ -208,6 +208,28 @@ html.k3-modal-open .book-body .body-inner { overflow: hidden; }
 :root[data-theme="dark"] .hljs-string, :root[data-theme="dark"] .hljs-attr { color: #6fd9a0; }
 :root[data-theme="dark"] .hljs-number { color: #f2a65a; }
 
+
+/* ---------- Copy buttons ---------- */
+.k3-code {   /* the wrapper carries the code-block look; the button lives in its own gutter, so it never covers (scrolling) code */
+  position: relative; margin: 22px 0; padding-right: 54px;
+  background: var(--k3-bg-code); border: 1px solid var(--k3-line); border-radius: 12px;
+}
+.k3-code > pre { margin: 0; background: transparent; border: 0; border-radius: 12px 0 0 12px; padding-right: 8px; }
+.k3-copy {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; cursor: pointer; padding: 0;
+  border: 1px solid var(--k3-line); background: var(--k3-bg); color: var(--k3-text-muted);
+  transition: color .12s, border-color .12s, background .12s;
+}
+.k3-copy:hover { color: var(--k3-text-strong); border-color: var(--k3-text-muted); }
+.k3-copy:focus-visible { outline: 2px solid var(--k3-accent); outline-offset: 2px; }
+.k3-copy.copied { color: #027a48; border-color: #027a48; background: color-mix(in srgb, #027a48 10%, var(--k3-bg)); }
+:root[data-theme="dark"] .k3-copy.copied { color: #4ade80; border-color: #4ade80; }
+.k3-copy-block { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; border-radius: 9px; }
+.k3-copy-inline { width: 24px; height: 24px; margin-left: 6px; vertical-align: middle; border-radius: 7px; }
+.k3-copy-inline svg { width: 13px; height: 13px; }
+@media (pointer: coarse) { .k3-code { padding-right: 58px; } .k3-copy-block { width: 40px; height: 40px; } .k3-copy-inline { width: 32px; height: 32px; } }
+@media print { .k3-copy { display: none !important; } .k3-code { padding-right: 0; } }
+
 /* ---------- Page header: section label, title, intro line ---------- */
 .k3-eyebrow { font: 600 15px var(--k3-font); color: var(--k3-text-strong); margin: 0 0 10px; letter-spacing: -0.005em; }
 .markdown-section > .k3-eyebrow + h1 { margin-top: 0; }

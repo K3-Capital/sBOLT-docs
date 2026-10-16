@@ -261,8 +261,49 @@ require(["gitbook"], function (gitbook) {
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor.nextSibling);
   }
 
+  /* ---- copy buttons: code blocks, and inline addresses / hashes / URLs ---- */
+  var ICON_COPY = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>';
+  var ICON_CHECK = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise(function (resolve, reject) {          // fallback for non-secure contexts / older browsers
+      var ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0"; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy") ? resolve() : reject(); } catch (e) { reject(e); } finally { ta.remove(); }
+    });
+  }
+  function makeCopyButton(getText, label, cls) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "k3-copy " + (cls || "");
+    b.setAttribute("aria-label", label); b.title = label; b.innerHTML = ICON_COPY;
+    var timer;
+    b.addEventListener("click", function (e) {
+      e.preventDefault(); e.stopPropagation();
+      copyText(getText()).then(function () {
+        b.classList.add("copied"); b.innerHTML = ICON_CHECK; b.setAttribute("aria-label", "Copied"); b.title = "Copied";
+        clearTimeout(timer);
+        timer = setTimeout(function () { b.classList.remove("copied"); b.innerHTML = ICON_COPY; b.setAttribute("aria-label", label); b.title = label; }, 1800);
+      }, function () { b.title = "Copy failed - select the text and copy it manually"; });
+    });
+    return b;
+  }
+  function wrapCode() {
+    [].forEach.call(document.querySelectorAll(".markdown-section pre"), function (pre) {
+      if (pre.parentElement.classList.contains("k3-code") || pre.querySelector("code.lang-mermaid")) return;   // diagrams are not code to copy
+      var wrap = document.createElement("div"); wrap.className = "k3-code";
+      pre.parentNode.insertBefore(wrap, pre); wrap.appendChild(pre);
+      wrap.appendChild(makeCopyButton(function () { return pre.innerText.replace(/\n$/, ""); }, "Copy code", "k3-copy-block"));
+    });
+    [].forEach.call(document.querySelectorAll(".markdown-section :not(pre) > code"), function (c) {
+      var t = c.textContent.trim();
+      var isHex = /^0x[0-9a-fA-F]{40,}$/.test(t), isUrl = /^https?:\/\/\S+$/.test(t);
+      if ((!isHex && !isUrl) || (c.nextElementSibling && c.nextElementSibling.classList.contains("k3-copy"))) return;
+      c.insertAdjacentElement("afterend", makeCopyButton(function () { return t; }, isUrl ? "Copy URL" : "Copy " + (t.length > 42 ? "hash" : "address"), "k3-copy-inline"));
+    });
+  }
+
   var firstInit = true;
-  function init() { buildTopbar(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; fitNav(); buildHeader(); wrapTables(); buildInlineToc(); buildToc(); buildPager(); }
+  function init() { buildTopbar(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; fitNav(); buildHeader(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });
