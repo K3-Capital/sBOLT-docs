@@ -1,9 +1,16 @@
 /* K3 theme behaviour: theme toggle, "On this page" TOC with scroll-spy, prev/next cards. */
 require(["gitbook"], function (gitbook) {
   var KEY = "k3-docs-theme";
+  var darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
+  var themeListeners = [];
   function stored() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
-  function apply(mode) { document.documentElement.setAttribute("data-theme", mode); }
-  apply(stored() || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  function currentMode() { var m = stored(); return m === "light" || m === "dark" ? m : "system"; }       // no stored choice = follow the system
+  function resolveMode(m) { return m === "system" ? (darkMQ && darkMQ.matches ? "dark" : "light") : m; }
+  function apply(resolved) { document.documentElement.setAttribute("data-theme", resolved); themeListeners.forEach(function (f) { f(); }); }
+  function setMode(m) { try { m === "system" ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, m); } catch (e) {} apply(resolveMode(m)); }
+  apply(resolveMode(currentMode()));
+  if (darkMQ) { var onSystemChange = function () { if (currentMode() === "system") apply(resolveMode("system")); };
+    darkMQ.addEventListener ? darkMQ.addEventListener("change", onSystemChange) : darkMQ.addListener(onSystemChange); }
 
   function scroller() { return document.querySelector(".book-body .body-inner"); }
 
@@ -93,19 +100,17 @@ require(["gitbook"], function (gitbook) {
     var right = document.createElement("div"); right.className = "k3-right";
     var gh = document.querySelector('.book-summary a[href*="github.com"]:not(.gitbook-link)');
     if (gh) { var g = document.createElement("a"); g.className = "k3-gh"; g.href = gh.href; g.target = "_blank"; g.rel = "noopener"; g.innerHTML = "<span>GitHub</span> ↗"; right.appendChild(g); }
-    var t = document.createElement("button"); t.className = "k3-icon-btn"; t.setAttribute("aria-label", "Toggle light/dark theme"); t.title = "Toggle theme";
+    var t = document.createElement("button"); t.className = "k3-icon-btn k3-theme-btn"; t.setAttribute("aria-label", "Toggle light/dark theme"); t.title = "Toggle theme";
     var SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
     var SUN = SVG + '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
     var MOON = SVG + '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
     /* shows the icon of the theme you will switch TO */
     function paint() { t.innerHTML = document.documentElement.getAttribute("data-theme") === "dark" ? SUN : MOON; }
-    t.addEventListener("click", function () {
-      var next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      apply(next); try { localStorage.setItem(KEY, next); } catch (e) {} paint();
-    });
-    paint(); right.appendChild(t);
+    t.addEventListener("click", function () { setMode(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark"); });
+    themeListeners.push(paint); paint(); right.appendChild(t);
+    var more = buildMore(gh); if (more) right.appendChild(more);
 
-    bar.appendChild(left); bar.appendChild(search); bar.appendChild(right);
+    bar.appendChild(left); bar.appendChild(search); bar.appendChild(right); bar.appendChild(buildCrumbs());
     document.querySelector(".book").appendChild(bar);
   }
 
@@ -283,6 +288,70 @@ require(["gitbook"], function (gitbook) {
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor.nextSibling);
   }
 
+  /* ---- phone navigation: breadcrumb row, "more" menu, and a drawer header (logo, theme switch, docs switcher) ---- */
+  var I = function (inner, w) { return '<svg xmlns="http://www.w3.org/2000/svg" width="' + (w || 20) + '" height="' + (w || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>'; };
+  var ICON_BURGER = I('<path d="M4 7h16M4 12h16M4 17h16"/>');
+  var ICON_KEBAB = I('<circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/>');
+  var ICON_CRUMB = I('<path d="m9 6 6 6-6 6"/>', 14);
+  var SEG_ICONS = { system: I('<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>', 16), light: I('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>', 16), dark: I('<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>', 16) };
+  var SEG_LABELS = { system: "System theme", light: "Light theme", dark: "Dark theme" };
+
+  function buildCrumbs() {
+    var row = document.createElement("div"); row.className = "k3-crumbs";
+    var burger = document.createElement("button"); burger.type = "button"; burger.className = "k3-icon-btn k3-menu-m"; burger.setAttribute("aria-label", "Open navigation"); burger.innerHTML = ICON_BURGER;
+    burger.addEventListener("click", function () { setSidebar(!sidebarOpen()); });
+    var sec = document.createElement("span"); sec.className = "k3-crumb-section";
+    var sep = document.createElement("span"); sep.className = "k3-crumb-sep"; sep.innerHTML = ICON_CRUMB;
+    var page = document.createElement("span"); page.className = "k3-crumb-page";
+    row.appendChild(burger); row.appendChild(sec); row.appendChild(sep); row.appendChild(page);
+    return row;
+  }
+  function updateCrumbs() {
+    var row = document.querySelector(".k3-crumbs"); if (!row) return;
+    var eyebrow = document.querySelector(".markdown-section .k3-eyebrow"), h1 = document.querySelector(".markdown-section h1");
+    var section = eyebrow ? eyebrow.textContent.trim() : "", title = h1 ? h1.textContent.trim() : document.title;
+    row.querySelector(".k3-crumb-section").textContent = section; row.querySelector(".k3-crumb-page").textContent = title;
+    row.classList.toggle("has-section", !!section);
+    /* On narrow phones show "Section > Page" only if it fits; otherwise keep the page title alone, in full. */
+    row.classList.remove("section-hidden"); row.classList.add("measure");
+    var tooWide = row.scrollWidth > row.clientWidth + 1;
+    row.classList.remove("measure"); if (tooWide && section) row.classList.add("section-hidden");
+  }
+  window.addEventListener("resize", function () { updateCrumbs(); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { updateCrumbs(); });
+
+  function buildMore(gh) {
+    if (!gh) return null;
+    var wrap = document.createElement("div"); wrap.className = "k3-more";
+    var btn = document.createElement("button"); btn.type = "button"; btn.className = "k3-icon-btn k3-more-btn"; btn.setAttribute("aria-label", "More"); btn.setAttribute("aria-haspopup", "menu"); btn.setAttribute("aria-expanded", "false"); btn.innerHTML = ICON_KEBAB;
+    var menu = document.createElement("div"); menu.className = "k3-more-menu"; menu.setAttribute("role", "menu"); menu.hidden = true;
+    var a = document.createElement("a"); a.className = "k3-more-item"; a.setAttribute("role", "menuitem"); a.href = gh.href; a.target = "_blank"; a.rel = "noopener"; a.innerHTML = "<span>GitHub repository</span> ↗";
+    menu.appendChild(a);
+    function close() { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); }
+    btn.addEventListener("click", function () { var open = menu.hidden; menu.hidden = !open; btn.setAttribute("aria-expanded", String(open)); });
+    document.addEventListener("mousedown", function (e) { if (!wrap.contains(e.target)) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !menu.hidden) { close(); btn.focus(); } });
+    a.addEventListener("click", close);
+    wrap.appendChild(btn); wrap.appendChild(menu); return wrap;
+  }
+
+  function buildDrawerHead() {
+    var side = document.querySelector(".book-summary"); if (!side || side.querySelector(".k3-drawer-head")) return;
+    var head = document.createElement("div"); head.className = "k3-drawer-head";
+    var logo = document.createElement("a"); logo.className = "k3-logo k3-drawer-logo"; logo.setAttribute("aria-label", "Home");
+    logo.addEventListener("click", function () { var f = side.querySelector("ul.summary a"); if (f) f.click(); });
+    var seg = document.createElement("div"); seg.className = "k3-seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "Theme");
+    ["system", "light", "dark"].forEach(function (m) {
+      var b = document.createElement("button"); b.type = "button"; b.dataset.mode = m; b.setAttribute("aria-label", SEG_LABELS[m]); b.title = SEG_LABELS[m]; b.innerHTML = SEG_ICONS[m];
+      b.addEventListener("click", function () { setMode(m); }); seg.appendChild(b);
+    });
+    function paintSeg() { var cur = currentMode(); [].forEach.call(seg.querySelectorAll("button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === cur)); }); }
+    themeListeners.push(paintSeg); paintSeg();
+    head.appendChild(logo); head.appendChild(seg); side.insertBefore(head, side.firstChild);
+    var sw = buildSwitcher("block");
+    if (sw) { var holder = document.createElement("div"); holder.className = "k3-drawer-switch"; holder.appendChild(sw); side.insertBefore(holder, head.nextSibling); }
+  }
+
   /* ---- docs switcher: moves between the documentation sets published on the same site ---- */
   var DOC_SETS = [
     { key: "vault-infra", label: "Vault infra", desc: "Architecture, integration guide and reference" },
@@ -296,10 +365,10 @@ require(["gitbook"], function (gitbook) {
     return null;                                   // not served from the combined site: nothing to switch to
   }
   var CHEVRON = '<svg class="k3-sw-chev" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
-  function buildSwitcher() {
+  function buildSwitcher(variant) {
     var where = detectDocSet(); if (!where) return null;
     var cur = DOC_SETS.filter(function (d) { return d.key === where.current; })[0];
-    var wrap = document.createElement("div"); wrap.className = "k3-switch";
+    var wrap = document.createElement("div"); wrap.className = "k3-switch" + (variant === "block" ? " k3-switch-block" : "");
     var btn = document.createElement("button"); btn.type = "button"; btn.className = "k3-switch-btn";
     btn.setAttribute("aria-haspopup", "menu"); btn.setAttribute("aria-expanded", "false"); btn.setAttribute("aria-label", "Switch documentation: currently " + cur.label);
     btn.innerHTML = '<span class="k3-sw-label"></span>' + CHEVRON; btn.querySelector(".k3-sw-label").textContent = cur.label;
@@ -376,7 +445,7 @@ require(["gitbook"], function (gitbook) {
   }
 
   var firstInit = true;
-  function init() { buildTopbar(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); buildHeader(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
+  function init() { buildTopbar(); buildDrawerHead(); buildBackdrop(); syncSidebar(firstInit); firstInit = false; markSectionTitles(); fitNav(); buildHeader(); updateCrumbs(); wrapTables(); wrapCode(); buildInlineToc(); buildToc(); buildPager(); }
   gitbook.events.bind("page.change", init);
   init();
 });
